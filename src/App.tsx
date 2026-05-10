@@ -107,7 +107,7 @@ function App() {
               </div>
             </div>
             <div className="viewport">
-              <BeamScene key={componentType} geometry={geometry} display={display} />
+              <BeamScene key={componentType} geometry={geometry} display={display} componentType={componentType} frame={frame} />
             </div>
           </div>
           <BomTable rows={bomRows} hints={hints} />

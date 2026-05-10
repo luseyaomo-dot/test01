@@ -183,14 +183,16 @@ const buildInnerStirrupsAt = (x: number, parameters: BeamParameters, hookLengthM
   const hookVert = hook * Math.SQRT1_2;
 
   const stirrups: StirrupPath[] = [];
+  // 内箍 y 方向缩进 2*radius+gap，避免与外箍上下边线重合
+  const yInner = y - 2 * radius - 0.003;
   if (innerCount === 1) {
     const halfWidth = halfInner / 2;
-    stirrups.push(buildSmallStirrup(x, 0, halfWidth, y, parameters.stirrupDiameter, hookHoriz, hookVert, `stirrup-${baseIndex + 1}-inner-1`));
+    stirrups.push(buildSmallStirrup(x, 0, halfWidth, yInner, parameters.stirrupDiameter, hookHoriz, hookVert, `stirrup-${baseIndex + 1}-inner-1`));
   } else if (innerCount === 2) {
     const halfWidth = halfInner / 3;
     const offsetZ = halfInner * 2 / 3;
-    stirrups.push(buildSmallStirrup(x, -offsetZ, halfWidth, y, parameters.stirrupDiameter, hookHoriz, hookVert, `stirrup-${baseIndex + 1}-inner-1`));
-    stirrups.push(buildSmallStirrup(x, offsetZ, halfWidth, y, parameters.stirrupDiameter, hookHoriz, hookVert, `stirrup-${baseIndex + 1}-inner-2`));
+    stirrups.push(buildSmallStirrup(x, -offsetZ, halfWidth, yInner, parameters.stirrupDiameter, hookHoriz, hookVert, `stirrup-${baseIndex + 1}-inner-1`));
+    stirrups.push(buildSmallStirrup(x, offsetZ, halfWidth, yInner, parameters.stirrupDiameter, hookHoriz, hookVert, `stirrup-${baseIndex + 1}-inner-2`));
   }
   return stirrups;
 };

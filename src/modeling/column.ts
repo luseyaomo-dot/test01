@@ -179,29 +179,32 @@ const buildColumnInnerStirrups = (y: number, parameters: ColumnParameters, hookL
   const hookV = hook * Math.SQRT1_2;
 
   const stirrups: StirrupPath[] = [];
+  // 内箍缩进 2*radius+gap，避免与外箍边线重合
+  const inset = 2 * radius + 0.003;
   // 4 肢: 加一个 90° 旋转的内箍 (沿 X 轴方向，缩小宽度)
   if (innerCount >= 1) {
     const innerHalfX = halfX / 2;
+    const innerHalfZ = halfZ - inset;
     stirrups.push({
       id: `col-stirrup-${baseIndex + 1}-inner-1`,
       diameter: parameters.stirrupDiameter,
       kind: 'inner',
       points: [
-        [-innerHalfX, y, -halfZ],
-        [innerHalfX, y, -halfZ],
-        [innerHalfX, y, halfZ],
-        [-innerHalfX, y, halfZ],
-        [-innerHalfX, y, -halfZ],
-        [innerHalfX, y, -halfZ],
+        [-innerHalfX, y, -innerHalfZ],
+        [innerHalfX, y, -innerHalfZ],
+        [innerHalfX, y, innerHalfZ],
+        [-innerHalfX, y, innerHalfZ],
+        [-innerHalfX, y, -innerHalfZ],
+        [innerHalfX, y, -innerHalfZ],
       ],
       hooks: [
         [
-          [innerHalfX, y, -halfZ],
-          [innerHalfX - hookH, y - hookV, -halfZ + hookH],
+          [innerHalfX, y, -innerHalfZ],
+          [innerHalfX - hookH, y - hookV, -innerHalfZ + hookH],
         ],
         [
-          [-innerHalfX, y, halfZ],
-          [-innerHalfX + hookH, y - hookV, halfZ - hookH],
+          [-innerHalfX, y, innerHalfZ],
+          [-innerHalfX + hookH, y - hookV, innerHalfZ - hookH],
         ],
       ],
     });
@@ -209,26 +212,27 @@ const buildColumnInnerStirrups = (y: number, parameters: ColumnParameters, hookL
   // 6 肢: 再加一个 Z 方向缩小的内箍
   if (innerCount >= 2) {
     const innerHalfZ = halfZ / 2;
+    const innerHalfX = halfX - inset;
     stirrups.push({
       id: `col-stirrup-${baseIndex + 1}-inner-2`,
       diameter: parameters.stirrupDiameter,
       kind: 'inner',
       points: [
-        [-halfX, y, -innerHalfZ],
-        [halfX, y, -innerHalfZ],
-        [halfX, y, innerHalfZ],
-        [-halfX, y, innerHalfZ],
-        [-halfX, y, -innerHalfZ],
-        [halfX, y, -innerHalfZ],
+        [-innerHalfX, y, -innerHalfZ],
+        [innerHalfX, y, -innerHalfZ],
+        [innerHalfX, y, innerHalfZ],
+        [-innerHalfX, y, innerHalfZ],
+        [-innerHalfX, y, -innerHalfZ],
+        [innerHalfX, y, -innerHalfZ],
       ],
       hooks: [
         [
-          [halfX, y, -innerHalfZ],
-          [halfX - hookH, y - hookV, -innerHalfZ + hookH],
+          [innerHalfX, y, -innerHalfZ],
+          [innerHalfX - hookH, y - hookV, -innerHalfZ + hookH],
         ],
         [
-          [-halfX, y, innerHalfZ],
-          [-halfX + hookH, y - hookV, innerHalfZ - hookH],
+          [-innerHalfX, y, innerHalfZ],
+          [-innerHalfX + hookH, y - hookV, innerHalfZ - hookH],
         ],
       ],
     });

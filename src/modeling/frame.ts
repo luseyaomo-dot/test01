@@ -110,10 +110,26 @@ export const buildFrameGeometry = (parameters: FrameParameters): BeamGeometryDat
     ...beam.rebarHooks.map((hook) => shiftHook(hook, 0, beamCenterY, 0, 'beam')),
   ];
 
+  // 节点核心区裁剪：
+  //  - 梁箍筋只保留净跨范围 [-spanLn/2, spanLn/2]
+  //  - 柱箍筋去掉位于梁高度范围内的（即节点核心区内的箍筋，由梁箍筋贯通）
+  const halfSpan = spanLnM / 2;
+  const jointTop = columnHeightM / 2;
+  const jointBottom = jointTop - beamHeightM;
+
+  const beamStirrupsTrimmed = beam.stirrups.filter((stirrup) => {
+    const x = stirrup.points[0]?.[0] ?? 0;
+    return x >= -halfSpan && x <= halfSpan;
+  });
+  const columnStirrupsTrimmed = column.stirrups.filter((stirrup) => {
+    const y = stirrup.points[0]?.[1] ?? 0;
+    return y < jointBottom;
+  });
+
   const stirrups: StirrupPath[] = [
-    ...beam.stirrups.map((stirrup) => shiftStirrup(stirrup, 0, beamCenterY, 0, 'beam')),
-    ...column.stirrups.map((stirrup) => shiftStirrup(stirrup, -colCenterX, 0, 0, 'col-l')),
-    ...column.stirrups.map((stirrup) => shiftStirrup(stirrup, colCenterX, 0, 0, 'col-r')),
+    ...beamStirrupsTrimmed.map((stirrup) => shiftStirrup(stirrup, 0, beamCenterY, 0, 'beam')),
+    ...columnStirrupsTrimmed.map((stirrup) => shiftStirrup(stirrup, -colCenterX, 0, 0, 'col-l')),
+    ...columnStirrupsTrimmed.map((stirrup) => shiftStirrup(stirrup, colCenterX, 0, 0, 'col-r')),
   ];
 
   const totalLength = spanLnM + 2 * colWidthM;
