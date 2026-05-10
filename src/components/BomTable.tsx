@@ -1,6 +1,6 @@
 import { Download, Filter } from 'lucide-react';
 import type { BomRow } from '../modeling/bom';
-import { summariseBom } from '../modeling/bom';
+import { downloadBomCsv, summariseBom } from '../modeling/bom';
 
 type BomTableProps = {
   rows: BomRow[];
@@ -23,7 +23,7 @@ export function BomTable({ rows, hints = [] }: BomTableProps) {
           </div>
           <div className="bom-actions">
             <button type="button" className="ghost-action"><Filter size={14} /> 筛选</button>
-            <button type="button" className="ghost-action"><Download size={14} /> 导出 CSV</button>
+            <button type="button" className="ghost-action" onClick={() => downloadBomCsv(rows)} disabled={rows.length === 0}><Download size={14} /> 导出 CSV</button>
           </div>
         </header>
         <div className="bom-table-scroll">

@@ -1,11 +1,12 @@
-import { useMemo } from 'react';
-import { BeamScene } from './components/BeamScene';
+import { useMemo, useState } from 'react';
+import { BeamScene, type ViewMode } from './components/BeamScene';
 import { BomTable } from './components/BomTable';
 import { ControlsPanel } from './components/ControlsPanel';
 import { Sidebar } from './components/Sidebar';
 import { TopBar } from './components/TopBar';
+import { ViewportTools } from './components/ViewportTools';
 import { buildBeamGeometry } from './modeling/beam';
-import { computeBom } from './modeling/bom';
+import { computeBom, downloadBomCsv } from './modeling/bom';
 import { buildColumnGeometry } from './modeling/column';
 import { buildFrameGeometry } from './modeling/frame';
 import { useBeamStore } from './store/useBeamStore';
@@ -24,6 +25,9 @@ function App() {
   const updateFrameParameter = useBeamStore((state) => state.updateFrameParameter);
   const updateDisplay = useBeamStore((state) => state.updateDisplay);
   const reset = useBeamStore((state) => state.reset);
+
+  const [viewMode, setViewMode] = useState<ViewMode>('iso');
+  const [viewKey, setViewKey] = useState(0);
 
   const geometry = useMemo(() => {
     if (componentType === 'column') return buildColumnGeometry(column);
@@ -80,7 +84,7 @@ function App() {
 
   return (
     <div className="app-root">
-      <TopBar />
+      <TopBar onExport={() => downloadBomCsv(bomRows)} />
       <div className="app-body">
         <Sidebar componentType={componentType} setComponentType={setComponentType} applyPreset={applyPreset} />
         <main className="workspace">
@@ -107,7 +111,19 @@ function App() {
               </div>
             </div>
             <div className="viewport">
-              <BeamScene key={componentType} geometry={geometry} display={display} componentType={componentType} frame={frame} />
+              <ViewportTools
+                viewMode={viewMode}
+                setViewMode={(mode) => { setViewMode(mode); setViewKey((k) => k + 1); }}
+                onResetView={() => { setViewMode('iso'); setViewKey((k) => k + 1); }}
+              />
+              <BeamScene
+                key={`${componentType}-${viewMode}-${viewKey}`}
+                geometry={geometry}
+                display={display}
+                componentType={componentType}
+                frame={frame}
+                viewMode={viewMode}
+              />
             </div>
           </div>
           <BomTable rows={bomRows} hints={hints} />

@@ -136,6 +136,38 @@ export const computeBom = (geometry: BeamGeometryData): BomRow[] => {
   return rows;
 };
 
+export const bomToCsv = (rows: BomRow[]): string => {
+  const header = ['ID', '类型', '直径(mm)', '根数', '单长(m)', '总长(m)', '重量(kg)', '备注', '状态'];
+  const lines = [header.join(',')];
+  rows.forEach((row) => {
+    lines.push([
+      row.id,
+      row.type,
+      row.diameter,
+      row.count,
+      row.singleLength.toFixed(3),
+      row.totalLength.toFixed(3),
+      row.weight.toFixed(2),
+      row.note ?? (row.type.includes('箍') ? '弯钩' : '通长'),
+      row.status,
+    ].map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','));
+  });
+  return '\uFEFF' + lines.join('\r\n');
+};
+
+export const downloadBomCsv = (rows: BomRow[], filename = 'rebar-bom.csv') => {
+  const csv = bomToCsv(rows);
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
+
 export const summariseBom = (rows: BomRow[]) => {
   const totalWeight = rows.reduce((sum, row) => sum + row.weight, 0);
   const totalLength = rows.reduce((sum, row) => sum + row.totalLength, 0);

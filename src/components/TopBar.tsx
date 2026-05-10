@@ -4,9 +4,10 @@ const tabs = ['工作台', '项目文件', '模型', '分析', '报表'];
 
 type TopBarProps = {
   activeTab?: string;
+  onExport?: () => void;
 };
 
-export function TopBar({ activeTab = '工作台' }: TopBarProps) {
+export function TopBar({ activeTab = '工作台', onExport }: TopBarProps) {
   return (
     <header className="app-header">
       <div className="brand">
@@ -34,7 +35,7 @@ export function TopBar({ activeTab = '工作台' }: TopBarProps) {
         <button className="icon-action" type="button" aria-label="通知"><Bell size={16} /></button>
         <button className="icon-action" type="button" aria-label="云"><Cloud size={16} /></button>
         <button className="ghost-action" type="button"><Save size={14} /> 保存参数</button>
-        <button className="primary-action" type="button"><Download size={14} /> 导出下料表</button>
+        <button className="primary-action" type="button" onClick={onExport}><Download size={14} /> 导出下料表</button>
       </div>
     </header>
   );

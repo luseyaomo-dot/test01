@@ -4,21 +4,39 @@ import type { BeamGeometryData, ComponentType, DisplayOptions, FrameParameters }
 import { BeamModel } from './BeamModel';
 import { SceneAnnotations } from './SceneAnnotations';
 
+export type ViewMode = 'iso' | 'front' | 'top' | 'side';
+
 type BeamSceneProps = {
   geometry: BeamGeometryData;
   display: DisplayOptions;
   componentType?: ComponentType;
   frame?: FrameParameters;
   showAnnotations?: boolean;
+  viewMode?: ViewMode;
 };
 
-export function BeamScene({ geometry, display, componentType, frame, showAnnotations = true }: BeamSceneProps) {
+const computeCameraPosition = (mode: ViewMode, dist: number): [number, number, number] => {
+  switch (mode) {
+    case 'front':
+      return [0, 0, dist * 1.1];
+    case 'top':
+      return [0, dist * 1.2, 0.001];
+    case 'side':
+      return [dist * 1.1, 0, 0];
+    case 'iso':
+    default:
+      return [dist * 0.9, dist * 0.55, dist * 0.7];
+  }
+};
+
+export function BeamScene({ geometry, display, componentType, frame, showAnnotations = true, viewMode = 'iso' }: BeamSceneProps) {
   const maxDim = Math.max(geometry.bounds.length, geometry.bounds.height, geometry.bounds.width);
   const camDist = Math.max(maxDim * 1.6, 4);
   const gridSize = Math.max(maxDim * 3, 12);
+  const camPosition = computeCameraPosition(viewMode, camDist);
   return (
     <Canvas shadows dpr={[1, 2]} gl={{ antialias: true }}>
-      <PerspectiveCamera makeDefault position={[camDist * 0.9, camDist * 0.55, camDist * 0.7]} fov={42} />
+      <PerspectiveCamera makeDefault position={camPosition} fov={42} />
       <color attach="background" args={["#0f172a"]} />
       <ambientLight intensity={0.7} />
       <directionalLight position={[camDist, camDist * 1.2, camDist]} intensity={1.8} castShadow shadow-mapSize-width={2048} shadow-mapSize-height={2048} />
