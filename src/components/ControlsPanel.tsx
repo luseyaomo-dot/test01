@@ -1,14 +1,16 @@
 import { RotateCcw, Wand2 } from 'lucide-react';
 import { useState } from 'react';
 import { parseBeamAnnotation } from '../modeling/annotation';
-import type { BeamParameters, ColumnParameters, ComponentType, DisplayOptions, FrameParameters } from '../types';
+import type { BeamParameters, ColumnParameters, ComponentType, DisplayOptions, FrameParameters, SlabParameters } from '../types';
 
 type ControlsPanelProps = {
   componentType: ComponentType;
   parameters: BeamParameters;
   column: ColumnParameters;
   frame?: FrameParameters;
+  slab?: SlabParameters;
   updateFrameParameter?: <K extends keyof FrameParameters>(key: K, value: FrameParameters[K]) => void;
+  updateSlabParameter?: <K extends keyof SlabParameters>(key: K, value: SlabParameters[K]) => void;
   display: DisplayOptions;
   errors: Partial<Record<keyof BeamParameters, string>>;
   stats: {
@@ -72,6 +74,7 @@ export function ControlsPanel({
   parameters,
   column,
   frame,
+  slab,
   display,
   errors,
   stats,
@@ -80,6 +83,7 @@ export function ControlsPanel({
   applyParameters,
   updateColumnParameter,
   updateFrameParameter,
+  updateSlabParameter,
   updateDisplay,
   reset,
 }: ControlsPanelProps) {
@@ -99,18 +103,53 @@ export function ControlsPanel({
       <div className="panel-header">
         <div>
           <p>平法参数 · 22G101</p>
-          <h2>{componentType === 'frame' ? '框架 KL+KZ' : componentType === 'column' ? '柱 KZ' : '梁 KL'} 构件</h2>
+          <h2>{componentType === 'frame' ? '框架 KL+KZ' : componentType === 'column' ? '柱 KZ' : componentType === 'slab' ? '板 LB' : '梁 KL'} 构件</h2>
         </div>
         <button className="icon-button" type="button" onClick={reset} aria-label="重置参数">
           <RotateCcw size={18} />
         </button>
       </div>
 
-      <div className="component-tabs">
+      <div className="component-tabs four">
         <button type="button" className={componentType === 'frame' ? 'active' : ''} onClick={() => setComponentType('frame')}>框架</button>
         <button type="button" className={componentType === 'beam' ? 'active' : ''} onClick={() => setComponentType('beam')}>梁 KL</button>
         <button type="button" className={componentType === 'column' ? 'active' : ''} onClick={() => setComponentType('column')}>柱 KZ</button>
+        <button type="button" className={componentType === 'slab' ? 'active' : ''} onClick={() => setComponentType('slab')}>板 LB</button>
       </div>
+
+      {componentType === 'slab' && slab && updateSlabParameter && (<>
+      <section>
+        <h3>板几何</h3>
+        <div className="field-grid">
+          <NumberField label="X 跨度" unit="mm" value={slab.length} min={1500} max={12000} step={100} onChange={(value) => updateSlabParameter('length', value)} />
+          <NumberField label="Z 跨度" unit="mm" value={slab.width} min={1500} max={12000} step={100} onChange={(value) => updateSlabParameter('width', value)} />
+          <NumberField label="板厚" unit="mm" value={slab.thickness} min={80} max={400} step={10} onChange={(value) => updateSlabParameter('thickness', value)} />
+          <NumberField label="保护层" unit="mm" value={slab.cover} min={10} max={40} step={1} onChange={(value) => updateSlabParameter('cover', value)} />
+          <NumberField label="顶筋弯锚 nd" value={slab.anchorageRatio} min={6} max={20} step={1} onChange={(value) => updateSlabParameter('anchorageRatio', value)} />
+        </div>
+        <p className="note">板厚 ≥ 80mm，保护层一类环境取 15mm。顶部支座负筋两端按 {slab.anchorageRatio}d 90° 弯锚到板底。</p>
+      </section>
+
+      <section>
+        <h3>下层钢筋网</h3>
+        <div className="field-grid">
+          <NumberField label="X 向直径" unit="mm" value={slab.bottomBarXDiameter} min={6} max={20} step={1} onChange={(value) => updateSlabParameter('bottomBarXDiameter', value)} />
+          <NumberField label="X 向间距" unit="mm" value={slab.bottomBarXSpacing} min={80} max={400} step={10} onChange={(value) => updateSlabParameter('bottomBarXSpacing', value)} />
+          <NumberField label="Z 向直径" unit="mm" value={slab.bottomBarZDiameter} min={6} max={20} step={1} onChange={(value) => updateSlabParameter('bottomBarZDiameter', value)} />
+          <NumberField label="Z 向间距" unit="mm" value={slab.bottomBarZSpacing} min={80} max={400} step={10} onChange={(value) => updateSlabParameter('bottomBarZSpacing', value)} />
+        </div>
+      </section>
+
+      <section>
+        <h3>上层钢筋网</h3>
+        <div className="field-grid">
+          <NumberField label="X 向直径" unit="mm" value={slab.topBarXDiameter} min={6} max={20} step={1} onChange={(value) => updateSlabParameter('topBarXDiameter', value)} />
+          <NumberField label="X 向间距" unit="mm" value={slab.topBarXSpacing} min={80} max={400} step={10} onChange={(value) => updateSlabParameter('topBarXSpacing', value)} />
+          <NumberField label="Z 向直径" unit="mm" value={slab.topBarZDiameter} min={6} max={20} step={1} onChange={(value) => updateSlabParameter('topBarZDiameter', value)} />
+          <NumberField label="Z 向间距" unit="mm" value={slab.topBarZSpacing} min={80} max={400} step={10} onChange={(value) => updateSlabParameter('topBarZSpacing', value)} />
+        </div>
+      </section>
+      </>)}
 
       {componentType === 'frame' && frame && updateFrameParameter && (<>
       <section>

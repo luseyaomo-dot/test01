@@ -5,6 +5,7 @@ const componentItems: { key: ComponentType; label: string; icon: typeof Box }[] 
   { key: 'frame', label: '框架 KL+KZ', icon: Frame },
   { key: 'beam', label: '梁 KL', icon: Box },
   { key: 'column', label: '柱 KZ', icon: Columns3 },
+  { key: 'slab', label: '板 LB', icon: Layers },
 ];
 
 type Preset = {
@@ -44,12 +45,6 @@ export function Sidebar({ componentType, setComponentType, applyPreset }: Sideba
               </button>
             </li>
           ))}
-          <li className="disabled">
-            <button type="button" disabled>
-              <Layers size={16} />
-              <span>板 (规划中)</span>
-            </button>
-          </li>
         </ul>
       </section>
 

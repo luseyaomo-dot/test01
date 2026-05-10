@@ -39,6 +39,10 @@ const segmentLength = (bar: RebarLine) =>
 type BarGroupKey = string;
 
 const categoryLabel = (bar: RebarLine, isBeamScope: boolean) => {
+  if (bar.id.startsWith('slab-bot-x')) return '板下层 X 向筋';
+  if (bar.id.startsWith('slab-bot-z')) return '板下层 Z 向筋';
+  if (bar.id.startsWith('slab-top-x')) return '板上层 X 向筋';
+  if (bar.id.startsWith('slab-top-z')) return '板上层 Z 向筋';
   if (bar.id.includes('corner')) return '柱角筋';
   if (bar.id.includes('side-x')) return '柱 b 边中部筋';
   if (bar.id.includes('side-z')) return '柱 h 边中部筋';
@@ -101,6 +105,10 @@ export const computeBom = (geometry: BeamGeometryData): BomRow[] => {
     '柱角筋',
     '柱 b 边中部筋',
     '柱 h 边中部筋',
+    '板下层 X 向筋',
+    '板下层 Z 向筋',
+    '板上层 X 向筋',
+    '板上层 Z 向筋',
     '梁箍筋',
     '梁复合内箍',
     '柱箍筋',

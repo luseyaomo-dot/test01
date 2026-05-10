@@ -1,6 +1,22 @@
 export type SeismicGrade = 'none' | '1' | '2' | '3' | '4';
 export type StirrupLegCount = 2 | 4 | 6;
-export type ComponentType = 'beam' | 'column' | 'frame';
+export type ComponentType = 'beam' | 'column' | 'frame' | 'slab';
+
+export type SlabParameters = {
+  length: number;        // X (mm)
+  width: number;         // Z (mm)
+  thickness: number;     // Y (mm)
+  cover: number;
+  bottomBarXDiameter: number;
+  bottomBarXSpacing: number;
+  bottomBarZDiameter: number;
+  bottomBarZSpacing: number;
+  topBarXDiameter: number;
+  topBarXSpacing: number;
+  topBarZDiameter: number;
+  topBarZSpacing: number;
+  anchorageRatio: number; // 顶筋弯锚长度 = anchorageRatio * d (典型 12)
+};
 
 export type ConcreteBox = {
   id: string;

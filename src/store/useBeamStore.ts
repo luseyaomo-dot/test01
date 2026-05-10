@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { z } from 'zod';
-import type { BeamParameters, ColumnParameters, ComponentType, DisplayOptions, FrameParameters } from '../types';
+import type { BeamParameters, ColumnParameters, ComponentType, DisplayOptions, FrameParameters, SlabParameters } from '../types';
 
 const beamSchema = z.object({
   length: z.number().min(1000).max(30000),
@@ -90,6 +90,22 @@ export const defaultFrameParameters: FrameParameters = {
   firstStirrupOffset: 50,
 };
 
+export const defaultSlabParameters: SlabParameters = {
+  length: 4000,
+  width: 3000,
+  thickness: 120,
+  cover: 15,
+  bottomBarXDiameter: 8,
+  bottomBarXSpacing: 200,
+  bottomBarZDiameter: 8,
+  bottomBarZSpacing: 200,
+  topBarXDiameter: 8,
+  topBarXSpacing: 200,
+  topBarZDiameter: 8,
+  topBarZSpacing: 200,
+  anchorageRatio: 12,
+};
+
 export const defaultDisplayOptions: DisplayOptions = {
   showConcrete: true,
   showWireframe: true,
@@ -106,6 +122,7 @@ type BeamStore = {
   parameters: BeamParameters;
   column: ColumnParameters;
   frame: FrameParameters;
+  slab: SlabParameters;
   display: DisplayOptions;
   errors: Partial<Record<keyof BeamParameters, string>>;
   setComponentType: (type: ComponentType) => void;
@@ -113,6 +130,7 @@ type BeamStore = {
   applyParameters: (patch: Partial<BeamParameters>) => void;
   updateColumnParameter: <K extends keyof ColumnParameters>(key: K, value: ColumnParameters[K]) => void;
   updateFrameParameter: <K extends keyof FrameParameters>(key: K, value: FrameParameters[K]) => void;
+  updateSlabParameter: <K extends keyof SlabParameters>(key: K, value: SlabParameters[K]) => void;
   updateDisplay: <K extends keyof DisplayOptions>(key: K, value: DisplayOptions[K]) => void;
   reset: () => void;
 };
@@ -135,6 +153,7 @@ export const useBeamStore = create<BeamStore>((set) => ({
   parameters: defaultBeamParameters,
   column: defaultColumnParameters,
   frame: defaultFrameParameters,
+  slab: defaultSlabParameters,
   display: defaultDisplayOptions,
   errors: {},
   setComponentType: (type) => set({ componentType: type }),
@@ -152,6 +171,8 @@ export const useBeamStore = create<BeamStore>((set) => ({
     set((state) => ({ column: { ...state.column, [key]: value } })),
   updateFrameParameter: (key, value) =>
     set((state) => ({ frame: { ...state.frame, [key]: value } })),
+  updateSlabParameter: (key, value) =>
+    set((state) => ({ slab: { ...state.slab, [key]: value } })),
   updateDisplay: (key, value) =>
     set((state) => ({ display: { ...state.display, [key]: value } })),
   reset: () =>
@@ -160,6 +181,7 @@ export const useBeamStore = create<BeamStore>((set) => ({
       parameters: defaultBeamParameters,
       column: defaultColumnParameters,
       frame: defaultFrameParameters,
+      slab: defaultSlabParameters,
       display: defaultDisplayOptions,
       errors: {},
     }),
