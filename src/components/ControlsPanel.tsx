@@ -1,4 +1,6 @@
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, Wand2 } from 'lucide-react';
+import { useState } from 'react';
+import { parseBeamAnnotation } from '../modeling/annotation';
 import type { BeamParameters, DisplayOptions } from '../types';
 
 type ControlsPanelProps = {
@@ -15,6 +17,7 @@ type ControlsPanelProps = {
     hookLength: number;
   };
   updateParameter: <K extends keyof BeamParameters>(key: K, value: BeamParameters[K]) => void;
+  applyParameters: (patch: Partial<BeamParameters>) => void;
   updateDisplay: <K extends keyof DisplayOptions>(key: K, value: DisplayOptions[K]) => void;
   reset: () => void;
 };
@@ -58,7 +61,18 @@ function ToggleField({ label, checked, onChange }: ToggleFieldProps) {
   );
 }
 
-export function ControlsPanel({ parameters, display, errors, stats, updateParameter, updateDisplay, reset }: ControlsPanelProps) {
+export function ControlsPanel({ parameters, display, errors, stats, updateParameter, applyParameters, updateDisplay, reset }: ControlsPanelProps) {
+  const [annotation, setAnnotation] = useState('KL1(2A) 300x700, A10@100/200(4), 4C25; 4C20');
+  const [parseFeedback, setParseFeedback] = useState<{ matched: string[]; warnings: string[] } | null>(null);
+
+  const handleParseAnnotation = () => {
+    const result = parseBeamAnnotation(annotation);
+    if (Object.keys(result.partial).length > 0) {
+      applyParameters(result.partial);
+    }
+    setParseFeedback({ matched: result.matched, warnings: result.warnings });
+  };
+
   return (
     <aside className="panel">
       <div className="panel-header">
@@ -70,6 +84,32 @@ export function ControlsPanel({ parameters, display, errors, stats, updateParame
           <RotateCcw size={18} />
         </button>
       </div>
+
+      <section>
+        <h3>平法集中标注</h3>
+        <label className="field annotation-field">
+          <span>标注字符串</span>
+          <textarea
+            rows={2}
+            value={annotation}
+            onChange={(event) => setAnnotation(event.target.value)}
+            placeholder="例如: KL1(2A) 300x700, A10@100/200(4), 4C25; 4C20"
+          />
+        </label>
+        <button className="primary-button" type="button" onClick={handleParseAnnotation}>
+          <Wand2 size={14} /> 解析并应用到模型
+        </button>
+        {parseFeedback && (
+          <div className="parse-feedback">
+            {parseFeedback.matched.length > 0 && (
+              <p className="match-line">已识别: {parseFeedback.matched.join(' · ')}</p>
+            )}
+            {parseFeedback.warnings.map((warning, index) => (
+              <p key={index} className="warn-line">⚠ {warning}</p>
+            ))}
+          </div>
+        )}
+      </section>
 
       <section>
         <h3>混凝土尺寸</h3>

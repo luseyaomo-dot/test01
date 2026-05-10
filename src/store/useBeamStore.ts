@@ -58,6 +58,7 @@ type BeamStore = {
   display: DisplayOptions;
   errors: Partial<Record<keyof BeamParameters, string>>;
   updateParameter: <K extends keyof BeamParameters>(key: K, value: BeamParameters[K]) => void;
+  applyParameters: (patch: Partial<BeamParameters>) => void;
   updateDisplay: <K extends keyof DisplayOptions>(key: K, value: DisplayOptions[K]) => void;
   reset: () => void;
 };
@@ -82,6 +83,11 @@ export const useBeamStore = create<BeamStore>((set) => ({
   updateParameter: (key, value) =>
     set((state) => {
       const parameters = { ...state.parameters, [key]: value };
+      return { parameters, errors: validateParameters(parameters) };
+    }),
+  applyParameters: (patch) =>
+    set((state) => {
+      const parameters = { ...state.parameters, ...patch };
       return { parameters, errors: validateParameters(parameters) };
     }),
   updateDisplay: (key, value) =>

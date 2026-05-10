@@ -219,6 +219,54 @@ section h3 {
   accent-color: #38bdf8;
 }
 
+.annotation-field textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: rgba(15, 23, 42, 0.55);
+  color: #e2e8f0;
+  font: inherit;
+  font-size: 12.5px;
+  resize: vertical;
+}
+
+.primary-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 8px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  background: rgba(14, 165, 233, 0.18);
+  color: #bae6fd;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.primary-button:hover {
+  background: rgba(14, 165, 233, 0.32);
+  border-color: rgba(56, 189, 248, 0.7);
+}
+
+.parse-feedback {
+  margin-top: 10px;
+  font-size: 11.5px;
+  line-height: 1.55;
+}
+
+.parse-feedback .match-line {
+  color: #86efac;
+  margin: 4px 0;
+}
+
+.parse-feedback .warn-line {
+  color: #fbbf24;
+  margin: 4px 0;
+}
+
 .note {
   margin: 10px 0 0;
   font-size: 11.5px;

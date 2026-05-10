@@ -9,6 +9,7 @@ function App() {
   const display = useBeamStore((state) => state.display);
   const errors = useBeamStore((state) => state.errors);
   const updateParameter = useBeamStore((state) => state.updateParameter);
+  const applyParameters = useBeamStore((state) => state.applyParameters);
   const updateDisplay = useBeamStore((state) => state.updateDisplay);
   const reset = useBeamStore((state) => state.reset);
   const geometry = useMemo(() => buildBeamGeometry(parameters), [parameters]);
@@ -34,6 +35,7 @@ function App() {
           errors={errors}
           stats={geometry.stats}
           updateParameter={updateParameter}
+          applyParameters={applyParameters}
           updateDisplay={updateDisplay}
           reset={reset}
         />
