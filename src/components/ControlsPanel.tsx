@@ -10,6 +10,9 @@ type ControlsPanelProps = {
     bottomBars: number;
     waistBars: number;
     stirrups: number;
+    legCount: number;
+    denseZoneLength: number;
+    hookLength: number;
   };
   updateParameter: <K extends keyof BeamParameters>(key: K, value: BeamParameters[K]) => void;
   updateDisplay: <K extends keyof DisplayOptions>(key: K, value: DisplayOptions[K]) => void;
@@ -75,6 +78,17 @@ export function ControlsPanel({ parameters, display, errors, stats, updateParame
           <NumberField label="梁宽" unit="mm" value={parameters.width} min={120} max={2000} step={10} error={errors.width} onChange={(value) => updateParameter('width', value)} />
           <NumberField label="梁高" unit="mm" value={parameters.height} min={200} max={3000} step={10} error={errors.height} onChange={(value) => updateParameter('height', value)} />
           <NumberField label="保护层" unit="mm" value={parameters.cover} min={10} max={120} step={5} error={errors.cover} onChange={(value) => updateParameter('cover', value)} />
+          <label className="field">
+            <span>抗震等级</span>
+            <select value={parameters.seismicGrade} onChange={(event) => updateParameter('seismicGrade', event.target.value as BeamParameters['seismicGrade'])}>
+              <option value="none">非抗震</option>
+              <option value="1">一级</option>
+              <option value="2">二级</option>
+              <option value="3">三级</option>
+              <option value="4">四级</option>
+            </select>
+          </label>
+          <NumberField label="锚固长度 La" unit="mm" value={parameters.anchorageLength} min={0} max={2000} step={10} error={errors.anchorageLength} onChange={(value) => updateParameter('anchorageLength', value)} />
         </div>
       </section>
 
@@ -94,11 +108,19 @@ export function ControlsPanel({ parameters, display, errors, stats, updateParame
         <h3>箍筋</h3>
         <div className="field-grid">
           <NumberField label="箍筋直径" unit="mm" value={parameters.stirrupDiameter} min={4} max={20} error={errors.stirrupDiameter} onChange={(value) => updateParameter('stirrupDiameter', value)} />
+          <label className="field">
+            <span>箍筋肢数</span>
+            <select value={parameters.stirrupLegCount} onChange={(event) => updateParameter('stirrupLegCount', Number(event.target.value) as BeamParameters['stirrupLegCount'])}>
+              <option value={2}>2 肢</option>
+              <option value={4}>4 肢</option>
+              <option value={6}>6 肢</option>
+            </select>
+          </label>
           <NumberField label="普通间距" unit="mm" value={parameters.stirrupSpacing} min={50} max={500} step={10} error={errors.stirrupSpacing} onChange={(value) => updateParameter('stirrupSpacing', value)} />
-          <NumberField label="加密区长" unit="mm" value={parameters.denseZoneLength} min={0} max={5000} step={50} error={errors.denseZoneLength} onChange={(value) => updateParameter('denseZoneLength', value)} />
           <NumberField label="加密间距" unit="mm" value={parameters.denseZoneSpacing} min={40} max={300} step={10} error={errors.denseZoneSpacing} onChange={(value) => updateParameter('denseZoneSpacing', value)} />
-          <NumberField label="弯钩长度" unit="mm" value={parameters.stirrupHookLength} min={30} max={300} step={10} error={errors.stirrupHookLength} onChange={(value) => updateParameter('stirrupHookLength', value)} />
+          <NumberField label="首道距支座" unit="mm" value={parameters.firstStirrupOffset} min={0} max={200} step={5} error={errors.firstStirrupOffset} onChange={(value) => updateParameter('firstStirrupOffset', value)} />
         </div>
+        <p className="note">加密区长度按抗震等级自动计算: 一级取 max(2h, 500mm)，二~四级取 max(1.5h, 500mm); 135° 弯钩长度 = max(10d, 75mm)。</p>
       </section>
 
       <section>
@@ -110,6 +132,7 @@ export function ControlsPanel({ parameters, display, errors, stats, updateParame
           <ToggleField label="下部筋" checked={display.showBottomBars} onChange={(value) => updateDisplay('showBottomBars', value)} />
           <ToggleField label="腰筋" checked={display.showWaistBars} onChange={(value) => updateDisplay('showWaistBars', value)} />
           <ToggleField label="箍筋" checked={display.showStirrups} onChange={(value) => updateDisplay('showStirrups', value)} />
+          <ToggleField label="复合内箍" checked={display.showInnerStirrups} onChange={(value) => updateDisplay('showInnerStirrups', value)} />
         </div>
         <label className="range-field">
           <span>混凝土透明度</span>
@@ -123,7 +146,9 @@ export function ControlsPanel({ parameters, display, errors, stats, updateParame
           <span>上部筋 {stats.topBars}</span>
           <span>下部筋 {stats.bottomBars}</span>
           <span>腰筋 {stats.waistBars}</span>
-          <span>箍筋 {stats.stirrups}</span>
+          <span>箍筋 {stats.stirrups} 道 / {stats.legCount} 肢</span>
+          <span>加密区 {stats.denseZoneLength.toFixed(0)} mm</span>
+          <span>弯钩 {stats.hookLength.toFixed(0)} mm</span>
         </div>
       </section>
     </aside>

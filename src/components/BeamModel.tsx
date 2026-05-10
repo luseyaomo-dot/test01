@@ -1,7 +1,7 @@
 import { Edges, Line } from '@react-three/drei';
 import { useMemo } from 'react';
 import * as THREE from 'three';
-import type { BeamGeometryData, DisplayOptions, RebarLine, StirrupPath } from '../types';
+import type { BeamGeometryData, DisplayOptions, RebarHook, RebarLine, StirrupPath } from '../types';
 
 const rebarColors = {
   top: '#b82922',
@@ -68,14 +68,21 @@ function TubePath({ points, diameter, color, radialSegments = 12 }: TubePathProp
 }
 
 function Stirrup({ stirrup }: StirrupProps) {
+  const mainColor = stirrup.kind === 'outer' ? '#7f1d1d' : '#9a3412';
+  const hookColor = stirrup.kind === 'outer' ? '#dc2626' : '#f97316';
   return (
     <group>
-      <TubePath points={stirrup.points} diameter={stirrup.diameter} color="#7f1d1d" radialSegments={14} />
+      <TubePath points={stirrup.points} diameter={stirrup.diameter} color={mainColor} radialSegments={stirrup.kind === 'outer' ? 14 : 12} />
       {stirrup.hooks.map((hook, index) => (
-        <TubePath key={`${stirrup.id}-hook-${index}`} points={hook} diameter={stirrup.diameter} color="#dc2626" radialSegments={12} />
+        <TubePath key={`${stirrup.id}-hook-${index}`} points={hook} diameter={stirrup.diameter} color={hookColor} radialSegments={10} />
       ))}
     </group>
   );
+}
+
+type RebarHookProps = { hook: RebarHook };
+function RebarEndHook({ hook }: RebarHookProps) {
+  return <TubePath points={hook.points} diameter={hook.diameter} color={rebarColors[hook.category]} radialSegments={14} />;
 }
 
 export function BeamModel({ geometry, display }: BeamModelProps) {
@@ -102,11 +109,19 @@ export function BeamModel({ geometry, display }: BeamModelProps) {
         </mesh>
       )}
 
-      {display.showStirrups && geometry.stirrups.map((stirrup) => <Stirrup key={stirrup.id} stirrup={stirrup} />)}
+      {display.showStirrups && geometry.stirrups
+        .filter((stirrup) => stirrup.kind === 'outer' || display.showInnerStirrups)
+        .map((stirrup) => <Stirrup key={stirrup.id} stirrup={stirrup} />)}
 
       {visibleBars.map((bar) => (
         <LongitudinalBar key={bar.id} bar={bar} />
       ))}
+
+      {geometry.rebarHooks
+        .filter((hook) => (hook.category === 'top' ? display.showTopBars : display.showBottomBars))
+        .map((hook) => (
+          <RebarEndHook key={hook.id} hook={hook} />
+        ))}
 
       <Line
         points={[

@@ -7,6 +7,7 @@ const beamSchema = z.object({
   width: z.number().min(120).max(2000),
   height: z.number().min(200).max(3000),
   cover: z.number().min(10).max(120),
+  seismicGrade: z.enum(['none', '1', '2', '3', '4']),
   topBarCount: z.number().int().min(1).max(20),
   topBarDiameter: z.number().min(6).max(50),
   bottomBarCount: z.number().int().min(1).max(20),
@@ -14,17 +15,19 @@ const beamSchema = z.object({
   waistBarCount: z.number().int().min(0).max(20),
   waistBarDiameter: z.number().min(6).max(40),
   stirrupDiameter: z.number().min(4).max(20),
+  stirrupLegCount: z.union([z.literal(2), z.literal(4), z.literal(6)]),
   stirrupSpacing: z.number().min(50).max(500),
-  denseZoneLength: z.number().min(0).max(5000),
   denseZoneSpacing: z.number().min(40).max(300),
-  stirrupHookLength: z.number().min(30).max(300),
+  anchorageLength: z.number().min(0).max(2000),
+  firstStirrupOffset: z.number().min(0).max(200),
 });
 
 export const defaultBeamParameters: BeamParameters = {
   length: 6000,
   width: 300,
   height: 600,
-  cover: 30,
+  cover: 25,
+  seismicGrade: '2',
   topBarCount: 2,
   topBarDiameter: 20,
   bottomBarCount: 3,
@@ -32,10 +35,11 @@ export const defaultBeamParameters: BeamParameters = {
   waistBarCount: 2,
   waistBarDiameter: 12,
   stirrupDiameter: 8,
+  stirrupLegCount: 4,
   stirrupSpacing: 200,
-  denseZoneLength: 900,
   denseZoneSpacing: 100,
-  stirrupHookLength: 80,
+  anchorageLength: 700,
+  firstStirrupOffset: 50,
 };
 
 export const defaultDisplayOptions: DisplayOptions = {
@@ -45,6 +49,7 @@ export const defaultDisplayOptions: DisplayOptions = {
   showBottomBars: true,
   showWaistBars: true,
   showStirrups: true,
+  showInnerStirrups: true,
   concreteOpacity: 0.28,
 };
 

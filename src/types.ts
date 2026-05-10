@@ -1,8 +1,12 @@
+export type SeismicGrade = 'none' | '1' | '2' | '3' | '4';
+export type StirrupLegCount = 2 | 4 | 6;
+
 export type BeamParameters = {
   length: number;
   width: number;
   height: number;
   cover: number;
+  seismicGrade: SeismicGrade;
   topBarCount: number;
   topBarDiameter: number;
   bottomBarCount: number;
@@ -10,10 +14,11 @@ export type BeamParameters = {
   waistBarCount: number;
   waistBarDiameter: number;
   stirrupDiameter: number;
+  stirrupLegCount: StirrupLegCount;
   stirrupSpacing: number;
-  denseZoneLength: number;
   denseZoneSpacing: number;
-  stirrupHookLength: number;
+  anchorageLength: number;
+  firstStirrupOffset: number;
 };
 
 export type DisplayOptions = {
@@ -23,6 +28,7 @@ export type DisplayOptions = {
   showBottomBars: boolean;
   showWaistBars: boolean;
   showStirrups: boolean;
+  showInnerStirrups: boolean;
   concreteOpacity: number;
 };
 
@@ -34,9 +40,17 @@ export type RebarLine = {
   end: [number, number, number];
 };
 
+export type RebarHook = {
+  id: string;
+  category: 'top' | 'bottom';
+  diameter: number;
+  points: [number, number, number][];
+};
+
 export type StirrupPath = {
   id: string;
   diameter: number;
+  kind: 'outer' | 'inner';
   points: [number, number, number][];
   hooks: [number, number, number][][];
 };
@@ -48,11 +62,15 @@ export type BeamGeometryData = {
     height: number;
   };
   rebars: RebarLine[];
+  rebarHooks: RebarHook[];
   stirrups: StirrupPath[];
   stats: {
     topBars: number;
     bottomBars: number;
     waistBars: number;
     stirrups: number;
+    legCount: number;
+    denseZoneLength: number;
+    hookLength: number;
   };
 };
