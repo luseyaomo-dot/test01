@@ -219,6 +219,38 @@ section h3 {
   accent-color: #38bdf8;
 }
 
+.component-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  padding: 4px;
+  background: rgba(15, 23, 42, 0.55);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 14px;
+  margin: 12px 0 4px;
+}
+
+.component-tabs button {
+  padding: 8px 10px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: #cbd5f5;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.component-tabs button:hover {
+  background: rgba(148, 163, 184, 0.12);
+}
+
+.component-tabs button.active {
+  background: rgba(56, 189, 248, 0.22);
+  color: #e0f2fe;
+  font-weight: 600;
+}
+
 .annotation-field textarea {
   width: 100%;
   padding: 10px 12px;

@@ -1,10 +1,12 @@
 import { RotateCcw, Wand2 } from 'lucide-react';
 import { useState } from 'react';
 import { parseBeamAnnotation } from '../modeling/annotation';
-import type { BeamParameters, DisplayOptions } from '../types';
+import type { BeamParameters, ColumnParameters, ComponentType, DisplayOptions } from '../types';
 
 type ControlsPanelProps = {
+  componentType: ComponentType;
   parameters: BeamParameters;
+  column: ColumnParameters;
   display: DisplayOptions;
   errors: Partial<Record<keyof BeamParameters, string>>;
   stats: {
@@ -16,8 +18,10 @@ type ControlsPanelProps = {
     denseZoneLength: number;
     hookLength: number;
   };
+  setComponentType: (type: ComponentType) => void;
   updateParameter: <K extends keyof BeamParameters>(key: K, value: BeamParameters[K]) => void;
   applyParameters: (patch: Partial<BeamParameters>) => void;
+  updateColumnParameter: <K extends keyof ColumnParameters>(key: K, value: ColumnParameters[K]) => void;
   updateDisplay: <K extends keyof DisplayOptions>(key: K, value: DisplayOptions[K]) => void;
   reset: () => void;
 };
@@ -61,7 +65,20 @@ function ToggleField({ label, checked, onChange }: ToggleFieldProps) {
   );
 }
 
-export function ControlsPanel({ parameters, display, errors, stats, updateParameter, applyParameters, updateDisplay, reset }: ControlsPanelProps) {
+export function ControlsPanel({
+  componentType,
+  parameters,
+  column,
+  display,
+  errors,
+  stats,
+  setComponentType,
+  updateParameter,
+  applyParameters,
+  updateColumnParameter,
+  updateDisplay,
+  reset,
+}: ControlsPanelProps) {
   const [annotation, setAnnotation] = useState('KL1(2A) 300x700, A10@100/200(4), 4C25; 4C20');
   const [parseFeedback, setParseFeedback] = useState<{ matched: string[]; warnings: string[] } | null>(null);
 
@@ -77,14 +94,20 @@ export function ControlsPanel({ parameters, display, errors, stats, updateParame
     <aside className="panel">
       <div className="panel-header">
         <div>
-          <p>平法参数</p>
-          <h2>梁构件 MVP</h2>
+          <p>平法参数 · 22G101</p>
+          <h2>{componentType === 'column' ? '柱 KZ' : '梁 KL'} 构件</h2>
         </div>
         <button className="icon-button" type="button" onClick={reset} aria-label="重置参数">
           <RotateCcw size={18} />
         </button>
       </div>
 
+      <div className="component-tabs">
+        <button type="button" className={componentType === 'beam' ? 'active' : ''} onClick={() => setComponentType('beam')}>梁 KL</button>
+        <button type="button" className={componentType === 'column' ? 'active' : ''} onClick={() => setComponentType('column')}>柱 KZ</button>
+      </div>
+
+      {componentType === 'beam' && (<>
       <section>
         <h3>平法集中标注</h3>
         <label className="field annotation-field">
@@ -162,6 +185,60 @@ export function ControlsPanel({ parameters, display, errors, stats, updateParame
         </div>
         <p className="note">加密区长度按抗震等级自动计算: 一级取 max(2h, 500mm)，二~四级取 max(1.5h, 500mm); 135° 弯钩长度 = max(10d, 75mm)。</p>
       </section>
+      </>)}
+
+      {componentType === 'column' && (<>
+      <section>
+        <h3>柱截面</h3>
+        <div className="field-grid">
+          <NumberField label="柱总高 Hn" unit="mm" value={column.height} min={1500} max={12000} step={100} onChange={(value) => updateColumnParameter('height', value)} />
+          <NumberField label="截面 b" unit="mm" value={column.width} min={200} max={2000} step={10} onChange={(value) => updateColumnParameter('width', value)} />
+          <NumberField label="截面 h" unit="mm" value={column.depth} min={200} max={2000} step={10} onChange={(value) => updateColumnParameter('depth', value)} />
+          <NumberField label="保护层" unit="mm" value={column.cover} min={10} max={120} step={5} onChange={(value) => updateColumnParameter('cover', value)} />
+          <label className="field">
+            <span>抗震等级</span>
+            <select value={column.seismicGrade} onChange={(event) => updateColumnParameter('seismicGrade', event.target.value as ColumnParameters['seismicGrade'])}>
+              <option value="none">非抗震</option>
+              <option value="1">一级</option>
+              <option value="2">二级</option>
+              <option value="3">三级</option>
+              <option value="4">四级</option>
+            </select>
+          </label>
+          <NumberField label="净高比 Hn/" value={column.clearHeightRatio} min={3} max={10} step={1} onChange={(value) => updateColumnParameter('clearHeightRatio', value)} />
+        </div>
+        <p className="note">柱端加密区按 22G101-1 取 max(柱截面较大边, Hn/净高比, 500mm)。一级抗震建议净高比 6，二~四级 6。</p>
+      </section>
+
+      <section>
+        <h3>柱纵筋</h3>
+        <div className="field-grid">
+          <NumberField label="角筋直径" unit="mm" value={column.cornerBarDiameter} min={12} max={40} onChange={(value) => updateColumnParameter('cornerBarDiameter', value)} />
+          <NumberField label="中部筋直径" unit="mm" value={column.sideBarDiameter} min={10} max={40} onChange={(value) => updateColumnParameter('sideBarDiameter', value)} />
+          <NumberField label="b 边中部筋" value={column.sideBarsX} min={0} max={10} onChange={(value) => updateColumnParameter('sideBarsX', value)} />
+          <NumberField label="h 边中部筋" value={column.sideBarsZ} min={0} max={10} onChange={(value) => updateColumnParameter('sideBarsZ', value)} />
+        </div>
+        <p className="note">4 根角筋 + 两侧中部筋按各边均匀分布。柱纵筋总数 = 4 + 2×(b边数) + 2×(h边数)。</p>
+      </section>
+
+      <section>
+        <h3>柱箍筋</h3>
+        <div className="field-grid">
+          <NumberField label="箍筋直径" unit="mm" value={column.stirrupDiameter} min={6} max={20} onChange={(value) => updateColumnParameter('stirrupDiameter', value)} />
+          <label className="field">
+            <span>箍筋肢数</span>
+            <select value={column.stirrupLegCount} onChange={(event) => updateColumnParameter('stirrupLegCount', Number(event.target.value) as ColumnParameters['stirrupLegCount'])}>
+              <option value={2}>2 肢</option>
+              <option value={4}>4 肢 (井字)</option>
+              <option value={6}>6 肢</option>
+            </select>
+          </label>
+          <NumberField label="普通间距" unit="mm" value={column.stirrupSpacing} min={50} max={500} step={10} onChange={(value) => updateColumnParameter('stirrupSpacing', value)} />
+          <NumberField label="加密间距" unit="mm" value={column.denseZoneSpacing} min={40} max={300} step={10} onChange={(value) => updateColumnParameter('denseZoneSpacing', value)} />
+          <NumberField label="首道距底部" unit="mm" value={column.firstStirrupOffset} min={0} max={200} step={5} onChange={(value) => updateColumnParameter('firstStirrupOffset', value)} />
+        </div>
+      </section>
+      </>)}
 
       <section>
         <h3>显示控制</h3>

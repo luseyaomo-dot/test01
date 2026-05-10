@@ -31,17 +31,26 @@ type TubePathProps = {
   radialSegments?: number;
 };
 
+const Y_AXIS = new THREE.Vector3(0, 1, 0);
+
 function LongitudinalBar({ bar }: LongitudinalBarProps) {
-  const radius = mmToMeters(bar.diameter) / 2;
-  const length = Math.abs(bar.end[0] - bar.start[0]);
-  const position: [number, number, number] = [
-    (bar.start[0] + bar.end[0]) / 2,
-    (bar.start[1] + bar.end[1]) / 2,
-    (bar.start[2] + bar.end[2]) / 2,
-  ];
+  const { radius, length, position, quaternion } = useMemo(() => {
+    const start = new THREE.Vector3(...bar.start);
+    const end = new THREE.Vector3(...bar.end);
+    const dir = end.clone().sub(start);
+    const len = dir.length();
+    const center = start.clone().add(end).multiplyScalar(0.5);
+    const quat = new THREE.Quaternion().setFromUnitVectors(Y_AXIS, dir.normalize());
+    return {
+      radius: mmToMeters(bar.diameter) / 2,
+      length: len,
+      position: center.toArray() as [number, number, number],
+      quaternion: quat,
+    };
+  }, [bar]);
 
   return (
-    <mesh position={position} rotation={[0, 0, Math.PI / 2]} castShadow receiveShadow>
+    <mesh position={position} quaternion={quaternion} castShadow receiveShadow>
       <cylinderGeometry args={[radius, radius, length, 28]} />
       <meshStandardMaterial color={rebarColors[bar.category]} metalness={0.25} roughness={0.34} />
     </mesh>

@@ -2,40 +2,55 @@ import { useMemo } from 'react';
 import { BeamScene } from './components/BeamScene';
 import { ControlsPanel } from './components/ControlsPanel';
 import { buildBeamGeometry } from './modeling/beam';
+import { buildColumnGeometry } from './modeling/column';
 import { useBeamStore } from './store/useBeamStore';
 
 function App() {
+  const componentType = useBeamStore((state) => state.componentType);
   const parameters = useBeamStore((state) => state.parameters);
+  const column = useBeamStore((state) => state.column);
   const display = useBeamStore((state) => state.display);
   const errors = useBeamStore((state) => state.errors);
+  const setComponentType = useBeamStore((state) => state.setComponentType);
   const updateParameter = useBeamStore((state) => state.updateParameter);
   const applyParameters = useBeamStore((state) => state.applyParameters);
+  const updateColumnParameter = useBeamStore((state) => state.updateColumnParameter);
   const updateDisplay = useBeamStore((state) => state.updateDisplay);
   const reset = useBeamStore((state) => state.reset);
-  const geometry = useMemo(() => buildBeamGeometry(parameters), [parameters]);
+  const geometry = useMemo(
+    () => (componentType === 'column' ? buildColumnGeometry(column) : buildBeamGeometry(parameters)),
+    [componentType, parameters, column],
+  );
+  const headerTitle = componentType === 'column' ? '柱构件 KZ 参数化预览' : '梁构件 KL 参数化预览';
+  const heroLabel = componentType === 'column' ? '柱高' : '梁长';
+  const heroValue = componentType === 'column' ? `${column.height}mm` : `${parameters.length}mm`;
 
   return (
     <main className="app-shell">
       <section className="hero-card">
         <div>
-          <p>纯前端 3D 钢筋平法可视化</p>
-          <h1>参数驱动的梁钢筋与混凝土实时预览</h1>
-          <span>输入构件尺寸、纵筋、箍筋与保护层参数，模型会即时重建并保持毫米级工程参数表达。</span>
+          <p>纯前端 3D 钢筋平法可视化 · 22G101 系列</p>
+          <h1>{headerTitle}</h1>
+          <span>切换构件类型与参数，模型按 22G101 平法构造规则即时重建。</span>
         </div>
         <div className="hero-metrics">
-          <strong>{parameters.length}mm</strong>
-          <span>梁长</span>
+          <strong>{heroValue}</strong>
+          <span>{heroLabel}</span>
         </div>
       </section>
 
       <section className="workspace">
         <ControlsPanel
+          componentType={componentType}
           parameters={parameters}
+          column={column}
           display={display}
           errors={errors}
           stats={geometry.stats}
+          setComponentType={setComponentType}
           updateParameter={updateParameter}
           applyParameters={applyParameters}
+          updateColumnParameter={updateColumnParameter}
           updateDisplay={updateDisplay}
           reset={reset}
         />
@@ -52,7 +67,7 @@ function App() {
             </div>
           </div>
           <div className="viewport">
-            <BeamScene geometry={geometry} display={display} />
+            <BeamScene key={componentType} geometry={geometry} display={display} />
           </div>
         </div>
       </section>

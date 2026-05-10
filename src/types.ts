@@ -1,5 +1,24 @@
 export type SeismicGrade = 'none' | '1' | '2' | '3' | '4';
 export type StirrupLegCount = 2 | 4 | 6;
+export type ComponentType = 'beam' | 'column';
+
+export type ColumnParameters = {
+  height: number;          // 柱总高 (mm)
+  width: number;           // b: X 方向 (mm)
+  depth: number;           // h: Z 方向 (mm)
+  cover: number;
+  seismicGrade: SeismicGrade;
+  cornerBarDiameter: number;       // 角筋直径
+  sideBarsX: number;               // X 边一侧的中部纵筋根数
+  sideBarsZ: number;               // Z 边一侧的中部纵筋根数
+  sideBarDiameter: number;
+  stirrupDiameter: number;
+  stirrupLegCount: StirrupLegCount;
+  stirrupSpacing: number;
+  denseZoneSpacing: number;
+  firstStirrupOffset: number;
+  clearHeightRatio: number;        // 节点加密区取 max(h, Hn/clearHeightRatio, 500)，默认 6
+};
 
 export type BeamParameters = {
   length: number;

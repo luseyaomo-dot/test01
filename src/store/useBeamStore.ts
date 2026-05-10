@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { z } from 'zod';
-import type { BeamParameters, DisplayOptions } from '../types';
+import type { BeamParameters, ColumnParameters, ComponentType, DisplayOptions } from '../types';
 
 const beamSchema = z.object({
   length: z.number().min(1000).max(30000),
@@ -42,6 +42,24 @@ export const defaultBeamParameters: BeamParameters = {
   firstStirrupOffset: 50,
 };
 
+export const defaultColumnParameters: ColumnParameters = {
+  height: 3600,
+  width: 500,
+  depth: 500,
+  cover: 25,
+  seismicGrade: '2',
+  cornerBarDiameter: 22,
+  sideBarsX: 2,
+  sideBarsZ: 2,
+  sideBarDiameter: 20,
+  stirrupDiameter: 10,
+  stirrupLegCount: 4,
+  stirrupSpacing: 200,
+  denseZoneSpacing: 100,
+  firstStirrupOffset: 50,
+  clearHeightRatio: 6,
+};
+
 export const defaultDisplayOptions: DisplayOptions = {
   showConcrete: true,
   showWireframe: true,
@@ -54,11 +72,15 @@ export const defaultDisplayOptions: DisplayOptions = {
 };
 
 type BeamStore = {
+  componentType: ComponentType;
   parameters: BeamParameters;
+  column: ColumnParameters;
   display: DisplayOptions;
   errors: Partial<Record<keyof BeamParameters, string>>;
+  setComponentType: (type: ComponentType) => void;
   updateParameter: <K extends keyof BeamParameters>(key: K, value: BeamParameters[K]) => void;
   applyParameters: (patch: Partial<BeamParameters>) => void;
+  updateColumnParameter: <K extends keyof ColumnParameters>(key: K, value: ColumnParameters[K]) => void;
   updateDisplay: <K extends keyof DisplayOptions>(key: K, value: DisplayOptions[K]) => void;
   reset: () => void;
 };
@@ -77,9 +99,12 @@ const validateParameters = (parameters: BeamParameters) => {
 };
 
 export const useBeamStore = create<BeamStore>((set) => ({
+  componentType: 'beam',
   parameters: defaultBeamParameters,
+  column: defaultColumnParameters,
   display: defaultDisplayOptions,
   errors: {},
+  setComponentType: (type) => set({ componentType: type }),
   updateParameter: (key, value) =>
     set((state) => {
       const parameters = { ...state.parameters, [key]: value };
@@ -90,7 +115,16 @@ export const useBeamStore = create<BeamStore>((set) => ({
       const parameters = { ...state.parameters, ...patch };
       return { parameters, errors: validateParameters(parameters) };
     }),
+  updateColumnParameter: (key, value) =>
+    set((state) => ({ column: { ...state.column, [key]: value } })),
   updateDisplay: (key, value) =>
     set((state) => ({ display: { ...state.display, [key]: value } })),
-  reset: () => set({ parameters: defaultBeamParameters, display: defaultDisplayOptions, errors: {} }),
+  reset: () =>
+    set({
+      componentType: 'beam',
+      parameters: defaultBeamParameters,
+      column: defaultColumnParameters,
+      display: defaultDisplayOptions,
+      errors: {},
+    }),
 }));
