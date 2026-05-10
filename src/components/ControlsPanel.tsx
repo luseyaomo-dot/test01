@@ -1,12 +1,14 @@
 import { RotateCcw, Wand2 } from 'lucide-react';
 import { useState } from 'react';
 import { parseBeamAnnotation } from '../modeling/annotation';
-import type { BeamParameters, ColumnParameters, ComponentType, DisplayOptions } from '../types';
+import type { BeamParameters, ColumnParameters, ComponentType, DisplayOptions, FrameParameters } from '../types';
 
 type ControlsPanelProps = {
   componentType: ComponentType;
   parameters: BeamParameters;
   column: ColumnParameters;
+  frame?: FrameParameters;
+  updateFrameParameter?: <K extends keyof FrameParameters>(key: K, value: FrameParameters[K]) => void;
   display: DisplayOptions;
   errors: Partial<Record<keyof BeamParameters, string>>;
   stats: {
@@ -69,6 +71,7 @@ export function ControlsPanel({
   componentType,
   parameters,
   column,
+  frame,
   display,
   errors,
   stats,
@@ -76,6 +79,7 @@ export function ControlsPanel({
   updateParameter,
   applyParameters,
   updateColumnParameter,
+  updateFrameParameter,
   updateDisplay,
   reset,
 }: ControlsPanelProps) {
@@ -95,7 +99,7 @@ export function ControlsPanel({
       <div className="panel-header">
         <div>
           <p>平法参数 · 22G101</p>
-          <h2>{componentType === 'column' ? '柱 KZ' : '梁 KL'} 构件</h2>
+          <h2>{componentType === 'frame' ? '框架 KL+KZ' : componentType === 'column' ? '柱 KZ' : '梁 KL'} 构件</h2>
         </div>
         <button className="icon-button" type="button" onClick={reset} aria-label="重置参数">
           <RotateCcw size={18} />
@@ -103,9 +107,79 @@ export function ControlsPanel({
       </div>
 
       <div className="component-tabs">
+        <button type="button" className={componentType === 'frame' ? 'active' : ''} onClick={() => setComponentType('frame')}>框架</button>
         <button type="button" className={componentType === 'beam' ? 'active' : ''} onClick={() => setComponentType('beam')}>梁 KL</button>
         <button type="button" className={componentType === 'column' ? 'active' : ''} onClick={() => setComponentType('column')}>柱 KZ</button>
       </div>
+
+      {componentType === 'frame' && frame && updateFrameParameter && (<>
+      <section>
+        <h3>框架几何</h3>
+        <div className="field-grid">
+          <NumberField label="净跨 Ln" unit="mm" value={frame.spanLn} min={2000} max={20000} step={100} onChange={(value) => updateFrameParameter('spanLn', value)} />
+          <NumberField label="柱总高 Hn" unit="mm" value={frame.columnHeight} min={1500} max={9000} step={100} onChange={(value) => updateFrameParameter('columnHeight', value)} />
+          <NumberField label="梁宽 b" unit="mm" value={frame.beamWidth} min={150} max={1200} step={10} onChange={(value) => updateFrameParameter('beamWidth', value)} />
+          <NumberField label="梁高 h" unit="mm" value={frame.beamHeight} min={300} max={2000} step={10} onChange={(value) => updateFrameParameter('beamHeight', value)} />
+          <NumberField label="柱截面 b" unit="mm" value={frame.columnWidth} min={300} max={1500} step={10} onChange={(value) => updateFrameParameter('columnWidth', value)} />
+          <NumberField label="柱截面 h" unit="mm" value={frame.columnDepth} min={300} max={1500} step={10} onChange={(value) => updateFrameParameter('columnDepth', value)} />
+          <NumberField label="保护层" unit="mm" value={frame.cover} min={10} max={120} step={5} onChange={(value) => updateFrameParameter('cover', value)} />
+          <label className="field">
+            <span>抗震等级</span>
+            <select value={frame.seismicGrade} onChange={(event) => updateFrameParameter('seismicGrade', event.target.value as FrameParameters['seismicGrade'])}>
+              <option value="none">非抗震</option>
+              <option value="1">一级</option>
+              <option value="2">二级</option>
+              <option value="3">三级</option>
+              <option value="4">四级</option>
+            </select>
+          </label>
+        </div>
+        <p className="note">梁总长自动 = 净跨 Ln + 2×柱截面 b。柱顶与梁顶平齐，梁主筋两端 15d 弯锚伸入端柱。</p>
+      </section>
+
+      <section>
+        <h3>梁纵筋 / 箍筋</h3>
+        <div className="field-grid">
+          <NumberField label="上部根数" value={frame.topBarCount} min={1} max={20} onChange={(value) => updateFrameParameter('topBarCount', value)} />
+          <NumberField label="上部直径" unit="mm" value={frame.topBarDiameter} min={10} max={40} onChange={(value) => updateFrameParameter('topBarDiameter', value)} />
+          <NumberField label="下部根数" value={frame.bottomBarCount} min={1} max={20} onChange={(value) => updateFrameParameter('bottomBarCount', value)} />
+          <NumberField label="下部直径" unit="mm" value={frame.bottomBarDiameter} min={10} max={40} onChange={(value) => updateFrameParameter('bottomBarDiameter', value)} />
+          <NumberField label="腰筋根数" value={frame.waistBarCount} min={0} max={10} onChange={(value) => updateFrameParameter('waistBarCount', value)} />
+          <NumberField label="梁箍筋直径" unit="mm" value={frame.beamStirrupDiameter} min={6} max={16} onChange={(value) => updateFrameParameter('beamStirrupDiameter', value)} />
+          <NumberField label="加密间距" unit="mm" value={frame.beamDenseSpacing} min={50} max={200} step={10} onChange={(value) => updateFrameParameter('beamDenseSpacing', value)} />
+          <NumberField label="普通间距" unit="mm" value={frame.beamStirrupSpacing} min={100} max={400} step={10} onChange={(value) => updateFrameParameter('beamStirrupSpacing', value)} />
+          <label className="field">
+            <span>梁箍筋肢数</span>
+            <select value={frame.beamStirrupLegCount} onChange={(event) => updateFrameParameter('beamStirrupLegCount', Number(event.target.value) as FrameParameters['beamStirrupLegCount'])}>
+              <option value={2}>2 肢</option>
+              <option value={4}>4 肢</option>
+              <option value={6}>6 肢</option>
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <section>
+        <h3>柱纵筋 / 箍筋</h3>
+        <div className="field-grid">
+          <NumberField label="角筋直径" unit="mm" value={frame.cornerBarDiameter} min={16} max={40} onChange={(value) => updateFrameParameter('cornerBarDiameter', value)} />
+          <NumberField label="中部筋直径" unit="mm" value={frame.sideBarDiameter} min={12} max={40} onChange={(value) => updateFrameParameter('sideBarDiameter', value)} />
+          <NumberField label="b 边中部筋" value={frame.sideBarsX} min={0} max={8} onChange={(value) => updateFrameParameter('sideBarsX', value)} />
+          <NumberField label="h 边中部筋" value={frame.sideBarsZ} min={0} max={8} onChange={(value) => updateFrameParameter('sideBarsZ', value)} />
+          <NumberField label="柱箍筋直径" unit="mm" value={frame.columnStirrupDiameter} min={6} max={16} onChange={(value) => updateFrameParameter('columnStirrupDiameter', value)} />
+          <NumberField label="柱加密间距" unit="mm" value={frame.columnDenseSpacing} min={50} max={200} step={10} onChange={(value) => updateFrameParameter('columnDenseSpacing', value)} />
+          <NumberField label="柱普通间距" unit="mm" value={frame.columnStirrupSpacing} min={100} max={400} step={10} onChange={(value) => updateFrameParameter('columnStirrupSpacing', value)} />
+          <label className="field">
+            <span>柱箍筋肢数</span>
+            <select value={frame.columnStirrupLegCount} onChange={(event) => updateFrameParameter('columnStirrupLegCount', Number(event.target.value) as FrameParameters['columnStirrupLegCount'])}>
+              <option value={2}>2 肢</option>
+              <option value={4}>4 肢</option>
+              <option value={6}>6 肢</option>
+            </select>
+          </label>
+        </div>
+      </section>
+      </>)}
 
       {componentType === 'beam' && (<>
       <section>

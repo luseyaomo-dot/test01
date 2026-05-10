@@ -280,15 +280,22 @@ export const buildBeamGeometry = (parameters: BeamParameters): BeamGeometryData 
   const rebarHooks = buildEndHooks(parameters, rebars);
   const hookLength = computeHookLength(parameters.stirrupDiameter);
 
+  const len = toMeters(parameters.length);
+  const w = toMeters(parameters.width);
+  const h = toMeters(parameters.height);
   return {
-    concrete: {
-      length: toMeters(parameters.length),
-      width: toMeters(parameters.width),
-      height: toMeters(parameters.height),
-    },
+    concretes: [
+      {
+        id: 'beam',
+        label: `KL ${parameters.width}×${parameters.height}`,
+        size: [len, h, w],
+        position: [0, 0, 0],
+      },
+    ],
     rebars,
     rebarHooks,
     stirrups,
+    bounds: { length: len, height: h, width: w },
     stats: {
       topBars: rebars.filter((bar) => bar.category === 'top').length,
       bottomBars: rebars.filter((bar) => bar.category === 'bottom').length,

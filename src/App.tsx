@@ -1,49 +1,122 @@
 import { useMemo } from 'react';
 import { BeamScene } from './components/BeamScene';
+import { BomTable } from './components/BomTable';
 import { ControlsPanel } from './components/ControlsPanel';
+import { Sidebar } from './components/Sidebar';
+import { TopBar } from './components/TopBar';
 import { buildBeamGeometry } from './modeling/beam';
+import { computeBom } from './modeling/bom';
 import { buildColumnGeometry } from './modeling/column';
+import { buildFrameGeometry } from './modeling/frame';
 import { useBeamStore } from './store/useBeamStore';
 
 function App() {
   const componentType = useBeamStore((state) => state.componentType);
   const parameters = useBeamStore((state) => state.parameters);
   const column = useBeamStore((state) => state.column);
+  const frame = useBeamStore((state) => state.frame);
   const display = useBeamStore((state) => state.display);
   const errors = useBeamStore((state) => state.errors);
   const setComponentType = useBeamStore((state) => state.setComponentType);
   const updateParameter = useBeamStore((state) => state.updateParameter);
   const applyParameters = useBeamStore((state) => state.applyParameters);
   const updateColumnParameter = useBeamStore((state) => state.updateColumnParameter);
+  const updateFrameParameter = useBeamStore((state) => state.updateFrameParameter);
   const updateDisplay = useBeamStore((state) => state.updateDisplay);
   const reset = useBeamStore((state) => state.reset);
-  const geometry = useMemo(
-    () => (componentType === 'column' ? buildColumnGeometry(column) : buildBeamGeometry(parameters)),
-    [componentType, parameters, column],
-  );
-  const headerTitle = componentType === 'column' ? '柱构件 KZ 参数化预览' : '梁构件 KL 参数化预览';
-  const heroLabel = componentType === 'column' ? '柱高' : '梁长';
-  const heroValue = componentType === 'column' ? `${column.height}mm` : `${parameters.length}mm`;
+
+  const geometry = useMemo(() => {
+    if (componentType === 'column') return buildColumnGeometry(column);
+    if (componentType === 'frame') return buildFrameGeometry(frame);
+    return buildBeamGeometry(parameters);
+  }, [componentType, parameters, column, frame]);
+
+  const bomRows = useMemo(() => computeBom(geometry), [geometry]);
+
+  const hints = useMemo(() => {
+    const list: string[] = [];
+    if (componentType === 'frame') {
+      list.push(`框架柱端加密区按抗震 ${frame.seismicGrade === 'none' ? '非抗震' : frame.seismicGrade + '级'} 自动计算。`);
+      list.push(`梁通长筋两端 15d 弯锚已生成，弯锚长度 ${15 * frame.topBarDiameter} mm。`);
+    } else if (componentType === 'beam') {
+      list.push(`梁加密区 ${geometry.stats.denseZoneLength.toFixed(0)} mm，箍筋首道距支座 ${parameters.firstStirrupOffset} mm。`);
+    } else {
+      list.push(`柱箍筋按 ${column.stirrupLegCount} 肢复合箍布置，加密区 ${geometry.stats.denseZoneLength.toFixed(0)} mm。`);
+    }
+    if (geometry.stats.hookLength) {
+      list.push(`135° 弯钩长度 = max(10d, 75mm) = ${geometry.stats.hookLength.toFixed(0)} mm`);
+    }
+    return list;
+  }, [componentType, frame, parameters, column, geometry]);
+
+  const applyPreset = (id: string) => {
+    if (id === 'default') {
+      updateFrameParameter('spanLn', 5000);
+      updateFrameParameter('beamWidth', 300);
+      updateFrameParameter('beamHeight', 600);
+    } else if (id === 'small') {
+      updateFrameParameter('spanLn', 4000);
+      updateFrameParameter('beamWidth', 250);
+      updateFrameParameter('beamHeight', 400);
+      updateFrameParameter('columnWidth', 400);
+      updateFrameParameter('columnDepth', 400);
+    } else if (id === 'large') {
+      updateFrameParameter('spanLn', 8000);
+      updateFrameParameter('beamWidth', 350);
+      updateFrameParameter('beamHeight', 800);
+      updateFrameParameter('columnWidth', 600);
+      updateFrameParameter('columnDepth', 600);
+      updateFrameParameter('seismicGrade', '1');
+    } else if (id === 'narrow') {
+      updateFrameParameter('spanLn', 5000);
+      updateFrameParameter('beamWidth', 300);
+      updateFrameParameter('beamHeight', 600);
+      updateFrameParameter('columnWidth', 400);
+    }
+    setComponentType('frame');
+  };
+
+  const sceneTitle = componentType === 'frame' ? '框架梁柱组合体' : componentType === 'column' ? '柱构件 KZ' : '梁构件 KL';
 
   return (
-    <main className="app-shell">
-      <section className="hero-card">
-        <div>
-          <p>纯前端 3D 钢筋平法可视化 · 22G101 系列</p>
-          <h1>{headerTitle}</h1>
-          <span>切换构件类型与参数，模型按 22G101 平法构造规则即时重建。</span>
-        </div>
-        <div className="hero-metrics">
-          <strong>{heroValue}</strong>
-          <span>{heroLabel}</span>
-        </div>
-      </section>
-
-      <section className="workspace">
+    <div className="app-root">
+      <TopBar />
+      <div className="app-body">
+        <Sidebar componentType={componentType} setComponentType={setComponentType} applyPreset={applyPreset} />
+        <main className="workspace">
+          <div className="viewport-card">
+            <div className="viewport-toolbar">
+              <div>
+                <span className="viewport-tag">3D 工作台 · {sceneTitle}</span>
+                <h2>
+                  {componentType === 'frame' && (
+                    <>Ln = {frame.spanLn} mm · b×h = {frame.beamWidth}×{frame.beamHeight} · KZ {frame.columnWidth}×{frame.columnDepth}</>
+                  )}
+                  {componentType === 'beam' && (
+                    <>L = {parameters.length} mm · b×h = {parameters.width}×{parameters.height}</>
+                  )}
+                  {componentType === 'column' && (
+                    <>Hn = {column.height} mm · b×h = {column.width}×{column.depth}</>
+                  )}
+                </h2>
+              </div>
+              <div className="legend">
+                <span><i className="legend-top" />上部筋</span>
+                <span><i className="legend-bottom" />下部筋</span>
+                <span><i className="legend-stirrup" />箍筋</span>
+              </div>
+            </div>
+            <div className="viewport">
+              <BeamScene key={componentType} geometry={geometry} display={display} />
+            </div>
+          </div>
+          <BomTable rows={bomRows} hints={hints} />
+        </main>
         <ControlsPanel
           componentType={componentType}
           parameters={parameters}
           column={column}
+          frame={frame}
           display={display}
           errors={errors}
           stats={geometry.stats}
@@ -51,27 +124,12 @@ function App() {
           updateParameter={updateParameter}
           applyParameters={applyParameters}
           updateColumnParameter={updateColumnParameter}
+          updateFrameParameter={updateFrameParameter}
           updateDisplay={updateDisplay}
           reset={reset}
         />
-        <div className="viewport-card">
-          <div className="viewport-toolbar">
-            <div>
-              <p>3D 预览</p>
-              <h2>混凝土透明实体 + 纵筋 + 箍筋阵列</h2>
-            </div>
-            <div className="legend">
-              <span><i className="legend-top" />上部筋</span>
-              <span><i className="legend-bottom" />下部筋</span>
-              <span><i className="legend-stirrup" />箍筋</span>
-            </div>
-          </div>
-          <div className="viewport">
-            <BeamScene key={componentType} geometry={geometry} display={display} />
-          </div>
-        </div>
-      </section>
-    </main>
+      </div>
+    </div>
   );
 }
 

@@ -248,15 +248,22 @@ export const buildColumnGeometry = (parameters: ColumnParameters): BeamGeometryD
 
   const rebars = buildColumnLongitudinalBars(parameters);
 
+  const lenX = toMeters(parameters.width);
+  const lenY = toMeters(parameters.height);
+  const lenZ = toMeters(parameters.depth);
   return {
-    concrete: {
-      length: toMeters(parameters.width),   // 渲染时 X 维度
-      height: toMeters(parameters.height),  // Y 维度
-      width: toMeters(parameters.depth),    // Z 维度
-    },
+    concretes: [
+      {
+        id: 'column',
+        label: `KZ ${parameters.width}×${parameters.depth}`,
+        size: [lenX, lenY, lenZ],
+        position: [0, 0, 0],
+      },
+    ],
     rebars,
     rebarHooks: [],
     stirrups,
+    bounds: { length: lenX, height: lenY, width: lenZ },
     stats: {
       topBars: rebars.filter((r) => r.category === 'top').length,
       bottomBars: rebars.filter((r) => r.category === 'bottom').length,

@@ -103,20 +103,20 @@ export function BeamModel({ geometry, display }: BeamModelProps) {
 
   return (
     <group>
-      {display.showConcrete && (
-        <mesh receiveShadow>
-          <boxGeometry args={[geometry.concrete.length, geometry.concrete.height, geometry.concrete.width]} />
+      {display.showConcrete && geometry.concretes.map((box) => (
+        <mesh key={`concrete-${box.id}`} position={box.position} receiveShadow>
+          <boxGeometry args={box.size} />
           <meshPhysicalMaterial color="#d7dde2" transparent opacity={display.concreteOpacity} roughness={0.82} metalness={0} depthWrite={false} />
           {display.showWireframe && <Edges color="#64748b" threshold={15} />}
         </mesh>
-      )}
+      ))}
 
-      {!display.showConcrete && display.showWireframe && (
-        <mesh>
-          <boxGeometry args={[geometry.concrete.length, geometry.concrete.height, geometry.concrete.width]} />
+      {!display.showConcrete && display.showWireframe && geometry.concretes.map((box) => (
+        <mesh key={`wf-${box.id}`} position={box.position}>
+          <boxGeometry args={box.size} />
           <meshBasicMaterial color="#94a3b8" wireframe transparent opacity={0.5} />
         </mesh>
-      )}
+      ))}
 
       {display.showStirrups && geometry.stirrups
         .filter((stirrup) => stirrup.kind === 'outer' || display.showInnerStirrups)
@@ -134,8 +134,8 @@ export function BeamModel({ geometry, display }: BeamModelProps) {
 
       <Line
         points={[
-          [-geometry.concrete.length / 2, -geometry.concrete.height / 2 - 0.08, -geometry.concrete.width / 2],
-          [geometry.concrete.length / 2, -geometry.concrete.height / 2 - 0.08, -geometry.concrete.width / 2],
+          [-geometry.bounds.length / 2, -geometry.bounds.height / 2 - 0.08, -geometry.bounds.width / 2],
+          [geometry.bounds.length / 2, -geometry.bounds.height / 2 - 0.08, -geometry.bounds.width / 2],
         ]}
         color="#38bdf8"
         lineWidth={2}

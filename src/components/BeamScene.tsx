@@ -9,7 +9,7 @@ type BeamSceneProps = {
 };
 
 export function BeamScene({ geometry, display }: BeamSceneProps) {
-  const maxDim = Math.max(geometry.concrete.length, geometry.concrete.height, geometry.concrete.width);
+  const maxDim = Math.max(geometry.bounds.length, geometry.bounds.height, geometry.bounds.width);
   const camDist = Math.max(maxDim * 1.6, 4);
   const gridSize = Math.max(maxDim * 3, 12);
   return (
@@ -19,7 +19,7 @@ export function BeamScene({ geometry, display }: BeamSceneProps) {
       <ambientLight intensity={0.7} />
       <directionalLight position={[camDist, camDist * 1.2, camDist]} intensity={1.8} castShadow shadow-mapSize-width={2048} shadow-mapSize-height={2048} />
       <BeamModel geometry={geometry} display={display} />
-      <Grid position={[0, -geometry.concrete.height / 2 - 0.12, 0]} args={[gridSize, gridSize]} cellSize={0.25} cellThickness={0.5} cellColor="#334155" sectionSize={1} sectionThickness={1.2} sectionColor="#64748b" fadeDistance={gridSize} fadeStrength={1.2} />
+      <Grid position={[0, -geometry.bounds.height / 2 - 0.12, 0]} args={[gridSize, gridSize]} cellSize={0.25} cellThickness={0.5} cellColor="#334155" sectionSize={1} sectionThickness={1.2} sectionColor="#64748b" fadeDistance={gridSize} fadeStrength={1.2} />
       <OrbitControls makeDefault enableDamping dampingFactor={0.08} minDistance={1.2} maxDistance={maxDim * 6} />
       <Environment preset="city" />
       <Stats />
