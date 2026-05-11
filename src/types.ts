@@ -55,6 +55,7 @@ export type FrameParameters = {
   columnStirrupSpacing: number;
   columnDenseSpacing: number;
   firstStirrupOffset: number;
+  jointCoreSpacing: number;             // 节点核心区箍筋间距 mm
 };
 
 export type ColumnParameters = {
@@ -124,7 +125,7 @@ export type RebarHook = {
 export type StirrupPath = {
   id: string;
   diameter: number;
-  kind: 'outer' | 'inner';
+  kind: 'outer' | 'inner' | 'joint';
   points: [number, number, number][];
   hooks: [number, number, number][][];
 };

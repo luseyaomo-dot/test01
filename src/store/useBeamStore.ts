@@ -88,6 +88,7 @@ export const defaultFrameParameters: FrameParameters = {
   columnStirrupSpacing: 200,
   columnDenseSpacing: 100,
   firstStirrupOffset: 50,
+  jointCoreSpacing: 100,
 };
 
 export const defaultSlabParameters: SlabParameters = {

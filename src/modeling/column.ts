@@ -3,7 +3,7 @@ import type { BeamGeometryData, ColumnParameters, RebarLine, StirrupPath } from 
 const MM_TO_M = 0.001;
 const toMeters = (value: number) => value * MM_TO_M;
 
-const computeHookLength = (stirrupDiameter: number) => Math.max(10 * stirrupDiameter, 75);
+export const computeHookLength = (stirrupDiameter: number) => Math.max(10 * stirrupDiameter, 75);
 
 const computeColumnDenseZoneLength = (parameters: ColumnParameters) => {
   if (parameters.seismicGrade === 'none') return 0;
@@ -129,7 +129,7 @@ const createColumnStirrupYStations = (parameters: ColumnParameters, denseLen: nu
   return stations.sort((a, b) => a - b).map((y) => toMeters(y - total / 2));
 };
 
-const buildColumnOuterStirrup = (y: number, parameters: ColumnParameters, hookLenMm: number, index: number): StirrupPath => {
+export const buildColumnOuterStirrup = (y: number, parameters: ColumnParameters, hookLenMm: number, index: number): StirrupPath => {
   const widthM = toMeters(parameters.width);
   const depthM = toMeters(parameters.depth);
   const cover = toMeters(parameters.cover);
@@ -164,7 +164,7 @@ const buildColumnOuterStirrup = (y: number, parameters: ColumnParameters, hookLe
   };
 };
 
-const buildColumnInnerStirrups = (y: number, parameters: ColumnParameters, hookLenMm: number, baseIndex: number): StirrupPath[] => {
+export const buildColumnInnerStirrups = (y: number, parameters: ColumnParameters, hookLenMm: number, baseIndex: number): StirrupPath[] => {
   const innerCount = Math.max(0, (parameters.stirrupLegCount - 2) / 2);
   if (innerCount <= 0) return [];
 

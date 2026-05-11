@@ -60,6 +60,7 @@ const categoryLabel = (bar: RebarLine, isBeamScope: boolean) => {
 };
 
 const stirrupLabel = (stirrup: StirrupPath) => {
+  if (stirrup.kind === 'joint') return '节点核心区箍筋';
   if (stirrup.id.startsWith('beam-')) return stirrup.kind === 'outer' ? '梁箍筋' : '梁复合内箍';
   if (stirrup.id.startsWith('col-')) return stirrup.kind === 'outer' ? '柱箍筋' : '柱复合内箍';
   return stirrup.kind === 'outer' ? '箍筋' : '复合内箍';
@@ -113,6 +114,7 @@ export const computeBom = (geometry: BeamGeometryData): BomRow[] => {
     '梁复合内箍',
     '柱箍筋',
     '柱复合内箍',
+    '节点核心区箍筋',
     '箍筋',
     '复合内箍',
   ];

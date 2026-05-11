@@ -77,11 +77,11 @@ function TubePath({ points, diameter, color, radialSegments = 12 }: TubePathProp
 }
 
 function Stirrup({ stirrup }: StirrupProps) {
-  const mainColor = stirrup.kind === 'outer' ? '#7f1d1d' : '#9a3412';
-  const hookColor = stirrup.kind === 'outer' ? '#dc2626' : '#f97316';
+  const mainColor = stirrup.kind === 'joint' ? '#7c3aed' : stirrup.kind === 'outer' ? '#7f1d1d' : '#9a3412';
+  const hookColor = stirrup.kind === 'joint' ? '#a78bfa' : stirrup.kind === 'outer' ? '#dc2626' : '#f97316';
   return (
     <group>
-      <TubePath points={stirrup.points} diameter={stirrup.diameter} color={mainColor} radialSegments={stirrup.kind === 'outer' ? 14 : 12} />
+      <TubePath points={stirrup.points} diameter={stirrup.diameter} color={mainColor} radialSegments={stirrup.kind === 'outer' || stirrup.kind === 'joint' ? 14 : 12} />
       {stirrup.hooks.map((hook, index) => (
         <TubePath key={`${stirrup.id}-hook-${index}`} points={hook} diameter={stirrup.diameter} color={hookColor} radialSegments={10} />
       ))}
@@ -119,7 +119,7 @@ export function BeamModel({ geometry, display }: BeamModelProps) {
       ))}
 
       {display.showStirrups && geometry.stirrups
-        .filter((stirrup) => stirrup.kind === 'outer' || display.showInnerStirrups)
+        .filter((stirrup) => stirrup.kind === 'outer' || stirrup.kind === 'joint' || display.showInnerStirrups)
         .map((stirrup) => <Stirrup key={stirrup.id} stirrup={stirrup} />)}
 
       {visibleBars.map((bar) => (

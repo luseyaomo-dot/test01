@@ -208,6 +208,7 @@ export function ControlsPanel({
           <NumberField label="柱箍筋直径" unit="mm" value={frame.columnStirrupDiameter} min={6} max={16} onChange={(value) => updateFrameParameter('columnStirrupDiameter', value)} />
           <NumberField label="柱加密间距" unit="mm" value={frame.columnDenseSpacing} min={50} max={200} step={10} onChange={(value) => updateFrameParameter('columnDenseSpacing', value)} />
           <NumberField label="柱普通间距" unit="mm" value={frame.columnStirrupSpacing} min={100} max={400} step={10} onChange={(value) => updateFrameParameter('columnStirrupSpacing', value)} />
+          <NumberField label="节点核心区间距" unit="mm" value={frame.jointCoreSpacing} min={50} max={200} step={10} onChange={(value) => updateFrameParameter('jointCoreSpacing', value)} />
           <label className="field">
             <span>柱箍筋肢数</span>
             <select value={frame.columnStirrupLegCount} onChange={(event) => updateFrameParameter('columnStirrupLegCount', Number(event.target.value) as FrameParameters['columnStirrupLegCount'])}>

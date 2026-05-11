@@ -46,6 +46,7 @@ function App() {
     if (componentType === 'frame') {
       list.push(`框架柱端加密区按抗震 ${frame.seismicGrade === 'none' ? '非抗震' : frame.seismicGrade + '级'} 自动计算。`);
       list.push(`梁通长筋两端 15d 弯锚已生成，弯锚长度 ${15 * frame.topBarDiameter} mm。`);
+      list.push(`节点核心区箍筋 @${frame.jointCoreSpacing} mm 已生成，并对梁筋投影区做局部避让。`);
     } else if (componentType === 'beam') {
       list.push(`梁加密区 ${geometry.stats.denseZoneLength.toFixed(0)} mm，箍筋首道距支座 ${parameters.firstStirrupOffset} mm。`);
     } else if (componentType === 'slab') {

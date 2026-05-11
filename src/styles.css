@@ -962,6 +962,12 @@ section h3 {
   color: #fde68a;
 }
 
+.scene-label-joint {
+  border-color: rgba(167, 139, 250, 0.7);
+  background: rgba(88, 28, 135, 0.88);
+  color: #ede9fe;
+}
+
 .bom-hint li {
   font-size: 12px;
   line-height: 1.55;

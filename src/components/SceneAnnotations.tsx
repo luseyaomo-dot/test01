@@ -10,7 +10,7 @@ type SceneAnnotationsProps = {
 
 type LabelProps = {
   position: [number, number, number];
-  variant?: 'span' | 'support' | 'anchor' | 'dense' | 'section';
+  variant?: 'span' | 'support' | 'anchor' | 'dense' | 'section' | 'joint';
   children: React.ReactNode;
 };
 
@@ -76,6 +76,13 @@ export function SceneAnnotations({ frame }: SceneAnnotationsProps) {
       {/* 锚固 (15d) */}
       <Label position={[-colCenterX + 0.05, beamCenterY + beamH * 0.2, labZ]} variant="anchor">
         锚固 0.4laE+15d ({anchorMm} mm)
+      </Label>
+
+      <Label position={[-colCenterX, beamCenterY, labZ + 0.06]} variant="joint">
+        节点核心区箍筋 @{frame.jointCoreSpacing}
+      </Label>
+      <Label position={[colCenterX, beamCenterY, labZ + 0.06]} variant="joint">
+        节点核心区箍筋 @{frame.jointCoreSpacing}
       </Label>
 
       {/* 加密区 (柱) */}
