@@ -1,7 +1,7 @@
 import { RotateCcw, Wand2 } from 'lucide-react';
 import { useState } from 'react';
 import { parseBeamAnnotation } from '../modeling/annotation';
-import type { BeamParameters, ColumnParameters, ComponentType, DisplayOptions, FrameParameters, SlabParameters } from '../types';
+import type { BeamParameters, ColumnParameters, ComponentType, DesignAdvice, DisplayOptions, FrameParameters, LoadInputs, MechanicsDisplayOptions, SlabParameters } from '../types';
 
 type ControlsPanelProps = {
   componentType: ComponentType;
@@ -12,6 +12,9 @@ type ControlsPanelProps = {
   updateFrameParameter?: <K extends keyof FrameParameters>(key: K, value: FrameParameters[K]) => void;
   updateSlabParameter?: <K extends keyof SlabParameters>(key: K, value: SlabParameters[K]) => void;
   display: DisplayOptions;
+  loads?: LoadInputs;
+  mechanicsDisplay?: MechanicsDisplayOptions;
+  advice?: DesignAdvice;
   errors: Partial<Record<keyof BeamParameters, string>>;
   stats: {
     topBars: number;
@@ -27,6 +30,8 @@ type ControlsPanelProps = {
   applyParameters: (patch: Partial<BeamParameters>) => void;
   updateColumnParameter: <K extends keyof ColumnParameters>(key: K, value: ColumnParameters[K]) => void;
   updateDisplay: <K extends keyof DisplayOptions>(key: K, value: DisplayOptions[K]) => void;
+  updateLoad?: <K extends keyof LoadInputs>(key: K, value: LoadInputs[K]) => void;
+  updateMechanicsDisplay?: <K extends keyof MechanicsDisplayOptions>(key: K, value: MechanicsDisplayOptions[K]) => void;
   reset: () => void;
 };
 
@@ -76,6 +81,9 @@ export function ControlsPanel({
   frame,
   slab,
   display,
+  loads,
+  mechanicsDisplay,
+  advice,
   errors,
   stats,
   setComponentType,
@@ -85,6 +93,8 @@ export function ControlsPanel({
   updateFrameParameter,
   updateSlabParameter,
   updateDisplay,
+  updateLoad,
+  updateMechanicsDisplay,
   reset,
 }: ControlsPanelProps) {
   const [annotation, setAnnotation] = useState('KL1(2A) 300x700, A10@100/200(4), 4C25; 4C20');
@@ -219,6 +229,43 @@ export function ControlsPanel({
           </label>
         </div>
       </section>
+
+      {loads && updateLoad && mechanicsDisplay && updateMechanicsDisplay && (
+        <section>
+          <h3>荷载与内力</h3>
+          <div className="field-grid">
+            <NumberField label="均布 q" unit="kN/m" value={loads.q} min={0} max={200} step={1} onChange={(value) => updateLoad('q', value)} />
+            <NumberField label="水平 H" unit="kN" value={loads.H} min={-200} max={200} step={1} onChange={(value) => updateLoad('H', value)} />
+          </div>
+          <div className="toggle-grid">
+            <ToggleField label="显示内力图" checked={mechanicsDisplay.show} onChange={(value) => updateMechanicsDisplay('show', value)} />
+            <ToggleField label="弯矩 M" checked={mechanicsDisplay.showMoment} onChange={(value) => updateMechanicsDisplay('showMoment', value)} />
+            <ToggleField label="剪力 V" checked={mechanicsDisplay.showShear} onChange={(value) => updateMechanicsDisplay('showShear', value)} />
+            <ToggleField label="轴力 N" checked={mechanicsDisplay.showAxial} onChange={(value) => updateMechanicsDisplay('showAxial', value)} />
+            <ToggleField label="数值标签" checked={mechanicsDisplay.showLabels} onChange={(value) => updateMechanicsDisplay('showLabels', value)} />
+            <ToggleField label="高亮受拉筋" checked={mechanicsDisplay.highlightTension} onChange={(value) => updateMechanicsDisplay('highlightTension', value)} />
+          </div>
+          <p className="note">单跨单层框架解析法 (位移法 + 反弯点近似)，仅做教学/示意，不替代正规结构计算。</p>
+        </section>
+      )}
+
+      {advice && (
+        <section className="advice-card">
+          <h3>配筋建议 <em>示意 · 非施工依据</em></h3>
+          <ul className="advice-list">
+            <li><strong>支座上部 As</strong> ≈ {advice.beam.AsTop_support.toFixed(0)} mm² → 推荐 <b>{advice.beam.suggestedTop.count}C{advice.beam.suggestedTop.diameter}</b> ({advice.beam.suggestedTop.provided.toFixed(0)} mm²)</li>
+            <li><strong>跨中下部 As</strong> ≈ {advice.beam.AsBot_mid.toFixed(0)} mm² → 推荐 <b>{advice.beam.suggestedBot.count}C{advice.beam.suggestedBot.diameter}</b> ({advice.beam.suggestedBot.provided.toFixed(0)} mm²)</li>
+            <li><strong>梁箍筋间距</strong> 加密 ≤ {advice.beam.stirrupSpacingDense} mm，普通 ≤ {advice.beam.stirrupSpacingNormal} mm</li>
+            <li><strong>柱总纵筋 As</strong> ≈ {advice.column.As_total.toFixed(0)} mm²</li>
+          </ul>
+          {advice.beam.notes.length > 0 && (
+            <ul className="advice-notes">
+              {advice.beam.notes.map((n, i) => <li key={`b${i}`}>· {n}</li>)}
+              {advice.column.notes.map((n, i) => <li key={`c${i}`}>· {n}</li>)}
+            </ul>
+          )}
+        </section>
+      )}
       </>)}
 
       {componentType === 'beam' && (<>

@@ -975,3 +975,112 @@ section h3 {
   padding-left: 10px;
   border-left: 2px solid rgba(56, 189, 248, 0.4);
 }
+
+/* ===== Mechanics Overlay ===== */
+.viewport { position: relative; }
+.mechanics-overlay {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 5;
+  width: 380px;
+  padding: 10px 12px 8px;
+  border-radius: 14px;
+  background: rgba(2, 6, 23, 0.78);
+  border: 1px solid rgba(56, 189, 248, 0.28);
+  box-shadow: 0 12px 40px rgba(2, 6, 23, 0.45);
+  pointer-events: none;
+}
+.mechanics-overlay-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+.mechanics-overlay-header span {
+  color: #bae6fd;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.mechanics-overlay-header em {
+  color: #94a3b8;
+  font-size: 11px;
+  font-style: normal;
+}
+.mechanics-overlay svg { display: block; }
+.mechanics-overlay svg .frame-axis line {
+  stroke: #e2e8f0;
+  stroke-width: 1.2;
+}
+.mechanics-overlay svg .diagram-moment path {
+  fill: rgba(248, 113, 113, 0.32);
+  stroke: #f87171;
+  stroke-width: 1.1;
+}
+.mechanics-overlay svg .diagram-shear path {
+  fill: rgba(56, 189, 248, 0.22);
+  stroke: #38bdf8;
+  stroke-width: 1.0;
+}
+.mechanics-overlay svg .diagram-axial path {
+  fill: rgba(132, 204, 22, 0.22);
+  stroke: #84cc16;
+  stroke-width: 1.0;
+}
+.mechanics-overlay svg .diagram-labels text {
+  fill: #f1f5f9;
+  font-size: 10px;
+  font-family: ui-monospace, Menlo, monospace;
+}
+.mechanics-overlay-legend {
+  display: flex;
+  gap: 12px;
+  margin-top: 4px;
+  font-size: 11px;
+  color: #cbd5e1;
+}
+.mechanics-overlay-legend i {
+  display: inline-block;
+  width: 12px;
+  height: 8px;
+  margin-right: 4px;
+  vertical-align: middle;
+  border-radius: 2px;
+}
+.mechanics-overlay-legend .lg-moment { background: rgba(248, 113, 113, 0.6); border: 1px solid #f87171; }
+.mechanics-overlay-legend .lg-shear  { background: rgba(56, 189, 248, 0.5); border: 1px solid #38bdf8; }
+.mechanics-overlay-legend .lg-axial  { background: rgba(132, 204, 22, 0.5); border: 1px solid #84cc16; }
+
+/* ===== Design Advice Card ===== */
+.advice-card h3 em {
+  margin-left: 8px;
+  color: #fbbf24;
+  font-size: 11px;
+  font-style: normal;
+}
+.advice-list {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+  display: grid;
+  gap: 6px;
+}
+.advice-list li {
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.18);
+  color: #e0f2fe;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.advice-list li b { color: #fde68a; }
+.advice-notes {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+  font-size: 11.5px;
+  color: #94a3b8;
+  line-height: 1.6;
+}

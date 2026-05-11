@@ -1,7 +1,7 @@
 import { Edges, Line } from '@react-three/drei';
 import { useMemo } from 'react';
 import * as THREE from 'three';
-import type { BeamGeometryData, DisplayOptions, RebarHook, RebarLine, StirrupPath } from '../types';
+import type { BeamGeometryData, DisplayOptions, FrameForces, MechanicsDisplayOptions, RebarHook, RebarLine, StirrupPath } from '../types';
 
 const rebarColors = {
   top: '#b82922',
@@ -9,15 +9,21 @@ const rebarColors = {
   waist: '#f0a02f',
 };
 
+const tensionColor = '#facc15';      // 受拉高亮: 亮黄
+const compressionColor = '#3b82f6';  // 受压高亮: 蓝
+
 const mmToMeters = (value: number) => value * 0.001;
 
 type BeamModelProps = {
   geometry: BeamGeometryData;
   display: DisplayOptions;
+  forces?: FrameForces;
+  mechanicsDisplay?: MechanicsDisplayOptions;
 };
 
 type LongitudinalBarProps = {
   bar: RebarLine;
+  color?: string;
 };
 
 type StirrupProps = {
@@ -33,7 +39,7 @@ type TubePathProps = {
 
 const Y_AXIS = new THREE.Vector3(0, 1, 0);
 
-function LongitudinalBar({ bar }: LongitudinalBarProps) {
+function LongitudinalBar({ bar, color }: LongitudinalBarProps) {
   const { radius, length, position, quaternion } = useMemo(() => {
     const start = new THREE.Vector3(...bar.start);
     const end = new THREE.Vector3(...bar.end);
@@ -49,10 +55,11 @@ function LongitudinalBar({ bar }: LongitudinalBarProps) {
     };
   }, [bar]);
 
+  const finalColor = color ?? rebarColors[bar.category];
   return (
     <mesh position={position} quaternion={quaternion} castShadow receiveShadow>
       <cylinderGeometry args={[radius, radius, length, 28]} />
-      <meshStandardMaterial color={rebarColors[bar.category]} metalness={0.25} roughness={0.34} />
+      <meshStandardMaterial color={finalColor} metalness={0.25} roughness={0.34} emissive={color ? finalColor : '#000'} emissiveIntensity={color ? 0.35 : 0} />
     </mesh>
   );
 }
@@ -94,12 +101,29 @@ function RebarEndHook({ hook }: RebarHookProps) {
   return <TubePath points={hook.points} diameter={hook.diameter} color={rebarColors[hook.category]} radialSegments={14} />;
 }
 
-export function BeamModel({ geometry, display }: BeamModelProps) {
+export function BeamModel({ geometry, display, forces, mechanicsDisplay }: BeamModelProps) {
   const visibleBars = geometry.rebars.filter((bar) => {
     if (bar.category === 'top') return display.showTopBars;
     if (bar.category === 'bottom') return display.showBottomBars;
     return display.showWaistBars;
   });
+
+  const highlightOn = !!(forces && mechanicsDisplay && mechanicsDisplay.highlightTension);
+  const beamHasHogging = !!(forces && forces.beam.M_max_neg > 0.5);
+  const beamHasSagging = !!(forces && forces.beam.M_max_pos > 0.5);
+  const colHasMoment = !!(forces && Math.max(forces.column.left.M_max, forces.column.right.M_max) > 0.5);
+
+  const highlightFor = (bar: RebarLine): string | undefined => {
+    if (!highlightOn) return undefined;
+    if (bar.id.startsWith('beam-')) {
+      if (bar.category === 'top' && beamHasHogging) return tensionColor;
+      if (bar.category === 'bottom' && beamHasSagging) return tensionColor;
+    } else if (bar.id.startsWith('col-') && colHasMoment) {
+      // 简化: 角筋统一标记为受拉/压区可能存在的钢筋, 用蓝色提示压力主导
+      if (bar.id.includes('corner')) return compressionColor;
+    }
+    return undefined;
+  };
 
   return (
     <group>
@@ -123,7 +147,7 @@ export function BeamModel({ geometry, display }: BeamModelProps) {
         .map((stirrup) => <Stirrup key={stirrup.id} stirrup={stirrup} />)}
 
       {visibleBars.map((bar) => (
-        <LongitudinalBar key={bar.id} bar={bar} />
+        <LongitudinalBar key={bar.id} bar={bar} color={highlightFor(bar)} />
       ))}
 
       {geometry.rebarHooks

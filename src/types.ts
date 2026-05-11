@@ -107,6 +107,59 @@ export type DisplayOptions = {
   concreteOpacity: number;
 };
 
+export type LoadInputs = {
+  q: number;   // kN/m, 梁均布竖向荷载 (含自重等效)
+  H: number;   // kN, 梁顶水平节点荷载, 作用在左节点, 向右为正
+};
+
+export type MechanicsDisplayOptions = {
+  show: boolean;            // 是否显示 2D 内力图层
+  showMoment: boolean;
+  showShear: boolean;
+  showAxial: boolean;
+  showLabels: boolean;
+  highlightTension: boolean;
+};
+
+export type ColumnForceProfile = {
+  M_top: number; M_bot: number; V: number; N: number;
+  M_max: number;
+  samples: { y: number; M: number; V: number; N: number }[];
+  height: number;
+};
+
+export type FrameForces = {
+  beam: {
+    M_left: number; M_mid: number; M_right: number;
+    V_left: number; V_right: number;
+    M_max_pos: number;
+    M_max_neg: number;
+    V_max: number;
+    samples: { x: number; M: number; V: number }[];
+    length: number;
+  };
+  column: { left: ColumnForceProfile; right: ColumnForceProfile };
+  inputs: LoadInputs;
+};
+
+export type DesignAdvice = {
+  beam: {
+    AsTop_support: number;
+    AsBot_mid: number;
+    suggestedTop: { count: number; diameter: number; provided: number };
+    suggestedBot: { count: number; diameter: number; provided: number };
+    stirrupSpacingDense: number;
+    stirrupSpacingNormal: number;
+    notes: string[];
+  };
+  column: {
+    As_total: number;
+    suggestedCorner: { diameter: number };
+    stirrupSpacingDense: number;
+    notes: string[];
+  };
+};
+
 export type RebarLine = {
   id: string;
   category: 'top' | 'bottom' | 'waist';

@@ -2,13 +2,16 @@ import { useMemo, useState } from 'react';
 import { BeamScene, type ViewMode } from './components/BeamScene';
 import { BomTable } from './components/BomTable';
 import { ControlsPanel } from './components/ControlsPanel';
+import { MechanicsOverlay } from './components/MechanicsOverlay';
 import { Sidebar } from './components/Sidebar';
 import { TopBar } from './components/TopBar';
 import { ViewportTools } from './components/ViewportTools';
 import { buildBeamGeometry } from './modeling/beam';
 import { computeBom, downloadBomCsv } from './modeling/bom';
 import { buildColumnGeometry } from './modeling/column';
+import { computeDesignAdvice } from './modeling/design';
 import { buildFrameGeometry } from './modeling/frame';
+import { computeFrameForces } from './modeling/mechanics';
 import { buildSlabGeometry } from './modeling/slab';
 import { useBeamStore } from './store/useBeamStore';
 
@@ -19,6 +22,8 @@ function App() {
   const frame = useBeamStore((state) => state.frame);
   const slab = useBeamStore((state) => state.slab);
   const display = useBeamStore((state) => state.display);
+  const loads = useBeamStore((state) => state.loads);
+  const mechanicsDisplay = useBeamStore((state) => state.mechanicsDisplay);
   const errors = useBeamStore((state) => state.errors);
   const setComponentType = useBeamStore((state) => state.setComponentType);
   const updateParameter = useBeamStore((state) => state.updateParameter);
@@ -27,6 +32,8 @@ function App() {
   const updateFrameParameter = useBeamStore((state) => state.updateFrameParameter);
   const updateSlabParameter = useBeamStore((state) => state.updateSlabParameter);
   const updateDisplay = useBeamStore((state) => state.updateDisplay);
+  const updateLoad = useBeamStore((state) => state.updateLoad);
+  const updateMechanicsDisplay = useBeamStore((state) => state.updateMechanicsDisplay);
   const reset = useBeamStore((state) => state.reset);
 
   const [viewMode, setViewMode] = useState<ViewMode>('iso');
@@ -41,12 +48,21 @@ function App() {
 
   const bomRows = useMemo(() => computeBom(geometry), [geometry]);
 
+  const forces = useMemo(() => (componentType === 'frame' ? computeFrameForces(frame, loads) : null), [componentType, frame, loads]);
+  const advice = useMemo(() => (componentType === 'frame' && forces ? computeDesignAdvice(frame, forces) : null), [componentType, frame, forces]);
+
   const hints = useMemo(() => {
     const list: string[] = [];
     if (componentType === 'frame') {
       list.push(`框架柱端加密区按抗震 ${frame.seismicGrade === 'none' ? '非抗震' : frame.seismicGrade + '级'} 自动计算。`);
       list.push(`梁通长筋两端 15d 弯锚已生成，弯锚长度 ${15 * frame.topBarDiameter} mm。`);
       list.push(`节点核心区箍筋 @${frame.jointCoreSpacing} mm 已生成，并对梁筋投影区做局部避让。`);
+      if (forces) {
+        list.push(`力学求解 (D 值法近似)：q=${loads.q} kN/m, H=${loads.H} kN → 梁端 M=${forces.beam.M_left.toFixed(1)} kN·m, 跨中 M=${forces.beam.M_mid.toFixed(1)} kN·m, V_max=${forces.beam.V_max.toFixed(1)} kN。`);
+      }
+      if (advice) {
+        list.push(`配筋建议 (示意, 非施工依据)：上部 ${advice.beam.suggestedTop.count}C${advice.beam.suggestedTop.diameter} (As=${advice.beam.AsTop_support.toFixed(0)} mm²), 下部 ${advice.beam.suggestedBot.count}C${advice.beam.suggestedBot.diameter} (As=${advice.beam.AsBot_mid.toFixed(0)} mm²), 加密箍 @${advice.beam.stirrupSpacingDense}.`);
+      }
     } else if (componentType === 'beam') {
       list.push(`梁加密区 ${geometry.stats.denseZoneLength.toFixed(0)} mm，箍筋首道距支座 ${parameters.firstStirrupOffset} mm。`);
     } else if (componentType === 'slab') {
@@ -59,7 +75,7 @@ function App() {
       list.push(`135° 弯钩长度 = max(10d, 75mm) = ${geometry.stats.hookLength.toFixed(0)} mm`);
     }
     return list;
-  }, [componentType, frame, parameters, column, slab, geometry]);
+  }, [componentType, frame, parameters, column, slab, geometry, forces, advice, loads]);
 
   const applyPreset = (id: string) => {
     if (id === 'default') {
@@ -138,7 +154,12 @@ function App() {
                 componentType={componentType}
                 frame={frame}
                 viewMode={viewMode}
+                forces={forces ?? undefined}
+                mechanicsDisplay={mechanicsDisplay}
               />
+              {componentType === 'frame' && forces && mechanicsDisplay.show && (
+                <MechanicsOverlay forces={forces} display={mechanicsDisplay} />
+              )}
             </div>
           </div>
           <BomTable rows={bomRows} hints={hints} />
@@ -150,6 +171,9 @@ function App() {
           frame={frame}
           slab={slab}
           display={display}
+          loads={loads}
+          mechanicsDisplay={mechanicsDisplay}
+          advice={advice ?? undefined}
           errors={errors}
           stats={geometry.stats}
           setComponentType={setComponentType}
@@ -159,6 +183,8 @@ function App() {
           updateFrameParameter={updateFrameParameter}
           updateSlabParameter={updateSlabParameter}
           updateDisplay={updateDisplay}
+          updateLoad={updateLoad}
+          updateMechanicsDisplay={updateMechanicsDisplay}
           reset={reset}
         />
       </div>
