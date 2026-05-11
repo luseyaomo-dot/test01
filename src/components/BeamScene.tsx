@@ -1,6 +1,8 @@
 import { Environment, Grid, OrbitControls, PerspectiveCamera, Stats } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
-import type { BeamGeometryData, ComponentType, DisplayOptions, FrameForces, FrameParameters, MechanicsDisplayOptions } from '../types';
+import * as THREE from 'three';
+import type { AnnotationDisplay, BeamGeometryData, ComponentType, DisplayOptions, FrameForces, FrameParameters, MechanicsDisplayOptions } from '../types';
+import { useIsMobile } from '../hooks/useIsMobile';
 import { BeamModel } from './BeamModel';
 import { SceneAnnotations } from './SceneAnnotations';
 
@@ -15,6 +17,7 @@ type BeamSceneProps = {
   viewMode?: ViewMode;
   forces?: FrameForces;
   mechanicsDisplay?: MechanicsDisplayOptions;
+  annotationDisplay?: AnnotationDisplay;
 };
 
 const computeCameraPosition = (mode: ViewMode, dist: number): [number, number, number] => {
@@ -31,23 +34,40 @@ const computeCameraPosition = (mode: ViewMode, dist: number): [number, number, n
   }
 };
 
-export function BeamScene({ geometry, display, componentType, frame, showAnnotations = true, viewMode = 'iso', forces, mechanicsDisplay }: BeamSceneProps) {
+export function BeamScene({ geometry, display, componentType, frame, showAnnotations = true, viewMode = 'iso', forces, mechanicsDisplay, annotationDisplay }: BeamSceneProps) {
+  const isMobile = useIsMobile();
   const maxDim = Math.max(geometry.bounds.length, geometry.bounds.height, geometry.bounds.width);
-  const camDist = Math.max(maxDim * 1.6, 4);
+  const camDist = Math.max(maxDim * (isMobile ? 1.85 : 1.6), 4);
   const gridSize = Math.max(maxDim * 3, 12);
   const camPosition = computeCameraPosition(viewMode, camDist);
   return (
-    <Canvas shadows dpr={[1, 2]} gl={{ antialias: true }}>
+    <Canvas
+      shadows={!isMobile}
+      dpr={isMobile ? [1, 1.5] : [1, 2]}
+      gl={{ antialias: true }}
+      style={{ touchAction: 'none' }}
+      onCreated={({ gl }) => { gl.domElement.style.touchAction = 'none'; }}
+    >
       <PerspectiveCamera makeDefault position={camPosition} fov={42} />
       <color attach="background" args={["#0f172a"]} />
       <ambientLight intensity={0.7} />
-      <directionalLight position={[camDist, camDist * 1.2, camDist]} intensity={1.8} castShadow shadow-mapSize-width={2048} shadow-mapSize-height={2048} />
+      <directionalLight position={[camDist, camDist * 1.2, camDist]} intensity={1.8} castShadow={!isMobile} shadow-mapSize-width={2048} shadow-mapSize-height={2048} />
       <BeamModel geometry={geometry} display={display} forces={forces} mechanicsDisplay={mechanicsDisplay} />
-      {showAnnotations && componentType === 'frame' && frame && <SceneAnnotations frame={frame} />}
+      {showAnnotations && componentType === 'frame' && frame && <SceneAnnotations frame={frame} display={annotationDisplay} />}
       <Grid position={[0, -geometry.bounds.height / 2 - 0.12, 0]} args={[gridSize, gridSize]} cellSize={0.25} cellThickness={0.5} cellColor="#334155" sectionSize={1} sectionThickness={1.2} sectionColor="#64748b" fadeDistance={gridSize} fadeStrength={1.2} />
-      <OrbitControls makeDefault enableDamping dampingFactor={0.08} minDistance={1.2} maxDistance={maxDim * 6} />
+      <OrbitControls
+        makeDefault
+        enableDamping
+        dampingFactor={0.08}
+        minDistance={1.2}
+        maxDistance={maxDim * 6}
+        rotateSpeed={isMobile ? 0.65 : 1.0}
+        zoomSpeed={isMobile ? 0.9 : 1.0}
+        panSpeed={isMobile ? 0.8 : 1.0}
+        touches={{ ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN }}
+      />
       <Environment preset="city" />
-      <Stats />
+      {!isMobile && <Stats />}
     </Canvas>
   );
 }

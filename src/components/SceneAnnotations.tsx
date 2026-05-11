@@ -1,11 +1,23 @@
 import { Html } from '@react-three/drei';
-import type { FrameParameters } from '../types';
+import type { AnnotationDisplay, FrameParameters } from '../types';
 
 const MM_TO_M = 0.001;
 const m = (mm: number) => mm * MM_TO_M;
 
 type SceneAnnotationsProps = {
   frame: FrameParameters;
+  display?: AnnotationDisplay;
+};
+
+const defaultDisplay: AnnotationDisplay = {
+  master: true,
+  span: true,
+  section: true,
+  support: true,
+  anchor: true,
+  joint: true,
+  columnDense: true,
+  beamDense: true,
 };
 
 type LabelProps = {
@@ -22,7 +34,8 @@ function Label({ position, variant = 'section', children }: LabelProps) {
   );
 }
 
-export function SceneAnnotations({ frame }: SceneAnnotationsProps) {
+export function SceneAnnotations({ frame, display = defaultDisplay }: SceneAnnotationsProps) {
+  if (!display.master) return null;
   const spanLn = m(frame.spanLn);
   const colW = m(frame.columnWidth);
   const colH = m(frame.columnHeight);
@@ -50,51 +63,63 @@ export function SceneAnnotations({ frame }: SceneAnnotationsProps) {
 
   return (
     <group>
-      {/* Ln 净跨 */}
-      <Label position={[0, beamBottom - 0.2, labZ]} variant="span">
-        Ln = {frame.spanLn} mm
-      </Label>
+      {display.span && (
+        <Label position={[0, beamBottom - 0.2, labZ]} variant="span">
+          Ln = {frame.spanLn} mm
+        </Label>
+      )}
 
-      {/* b×h 梁截面 */}
-      <Label position={[0, beamTop + 0.18, labZ]} variant="section">
-        b×h = {frame.beamWidth}×{frame.beamHeight}
-      </Label>
+      {display.section && (
+        <>
+          <Label position={[0, beamTop + 0.18, labZ]} variant="section">
+            b×h = {frame.beamWidth}×{frame.beamHeight}
+          </Label>
+          <Label position={[colCenterX, colTop * 0.45, labZ]} variant="section">
+            KZ {frame.columnWidth}×{frame.columnDepth}
+          </Label>
+        </>
+      )}
 
-      {/* 支座 (左右柱) */}
-      <Label position={[-colCenterX, beamBottom - 0.12, labZ]} variant="support">
-        支座 {frame.columnWidth}
-      </Label>
-      <Label position={[colCenterX, beamBottom - 0.12, labZ]} variant="support">
-        支座 {frame.columnWidth}
-      </Label>
+      {display.support && (
+        <>
+          <Label position={[-colCenterX, beamBottom - 0.12, labZ]} variant="support">
+            支座 {frame.columnWidth}
+          </Label>
+          <Label position={[colCenterX, beamBottom - 0.12, labZ]} variant="support">
+            支座 {frame.columnWidth}
+          </Label>
+        </>
+      )}
 
-      {/* KZ 截面 */}
-      <Label position={[colCenterX, colTop * 0.45, labZ]} variant="section">
-        KZ {frame.columnWidth}×{frame.columnDepth}
-      </Label>
+      {display.anchor && (
+        <Label position={[-colCenterX + 0.05, beamCenterY + beamH * 0.2, labZ]} variant="anchor">
+          锚固 0.4laE+15d ({anchorMm} mm)
+        </Label>
+      )}
 
-      {/* 锚固 (15d) */}
-      <Label position={[-colCenterX + 0.05, beamCenterY + beamH * 0.2, labZ]} variant="anchor">
-        锚固 0.4laE+15d ({anchorMm} mm)
-      </Label>
+      {display.joint && (
+        <>
+          <Label position={[-colCenterX, beamCenterY, labZ + 0.06]} variant="joint">
+            节点核心区箍筋 @{frame.jointCoreSpacing}
+          </Label>
+          <Label position={[colCenterX, beamCenterY, labZ + 0.06]} variant="joint">
+            节点核心区箍筋 @{frame.jointCoreSpacing}
+          </Label>
+        </>
+      )}
 
-      <Label position={[-colCenterX, beamCenterY, labZ + 0.06]} variant="joint">
-        节点核心区箍筋 @{frame.jointCoreSpacing}
-      </Label>
-      <Label position={[colCenterX, beamCenterY, labZ + 0.06]} variant="joint">
-        节点核心区箍筋 @{frame.jointCoreSpacing}
-      </Label>
+      {display.columnDense && (
+        <>
+          <Label position={[-colCenterX, beamBottom - m(denseZoneMm) / 2, labZ]} variant="dense">
+            柱加密区 {denseZoneMm.toFixed(0)} mm
+          </Label>
+          <Label position={[colCenterX, beamBottom - m(denseZoneMm) / 2, labZ]} variant="dense">
+            柱加密区 {denseZoneMm.toFixed(0)} mm
+          </Label>
+        </>
+      )}
 
-      {/* 加密区 (柱) */}
-      <Label position={[-colCenterX, beamBottom - m(denseZoneMm) / 2, labZ]} variant="dense">
-        柱加密区 {denseZoneMm.toFixed(0)} mm
-      </Label>
-      <Label position={[colCenterX, beamBottom - m(denseZoneMm) / 2, labZ]} variant="dense">
-        柱加密区 {denseZoneMm.toFixed(0)} mm
-      </Label>
-
-      {/* 加密区 (梁) - 仅抗震时 */}
-      {beamDenseMm > 0 && (
+      {display.beamDense && beamDenseMm > 0 && (
         <>
           <Label position={[-halfSpan + m(beamDenseMm) / 2, beamTop + 0.05, labZ]} variant="dense">
             梁加密区 {beamDenseMm.toFixed(0)} mm

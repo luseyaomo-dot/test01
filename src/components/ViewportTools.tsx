@@ -5,6 +5,7 @@ type ViewportToolsProps = {
   viewMode: ViewMode;
   setViewMode: (mode: ViewMode) => void;
   onResetView: () => void;
+  variant?: 'desktop' | 'mobile';
 };
 
 const tools: { mode: ViewMode; label: string; icon: typeof Box; tip: string }[] = [
@@ -14,9 +15,11 @@ const tools: { mode: ViewMode; label: string; icon: typeof Box; tip: string }[] 
   { mode: 'side', label: '侧视', icon: Box, tip: '侧立面 (沿 X 轴看)' },
 ];
 
-export function ViewportTools({ viewMode, setViewMode, onResetView }: ViewportToolsProps) {
+export function ViewportTools({ viewMode, setViewMode, onResetView, variant = 'desktop' }: ViewportToolsProps) {
+  const className = variant === 'mobile' ? 'viewport-tools viewport-tools-mobile' : 'viewport-tools';
+  const iconSize = variant === 'mobile' ? 16 : 14;
   return (
-    <div className="viewport-tools">
+    <div className={className}>
       {tools.map(({ mode, label, icon: Icon, tip }) => (
         <button
           key={mode}
@@ -25,12 +28,12 @@ export function ViewportTools({ viewMode, setViewMode, onResetView }: ViewportTo
           onClick={() => setViewMode(mode)}
           title={tip}
         >
-          <Icon size={14} />
+          <Icon size={iconSize} />
           <span>{label}</span>
         </button>
       ))}
       <button type="button" className="viewport-tool" onClick={onResetView} title="重新框选模型">
-        <RefreshCw size={14} />
+        <RefreshCw size={iconSize} />
         <span>重置</span>
       </button>
     </div>

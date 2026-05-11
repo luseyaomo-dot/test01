@@ -3,9 +3,11 @@ import { BeamScene, type ViewMode } from './components/BeamScene';
 import { BomTable } from './components/BomTable';
 import { ControlsPanel } from './components/ControlsPanel';
 import { MechanicsOverlay } from './components/MechanicsOverlay';
+import { MobileShell, type MobileTab } from './components/MobileShell';
 import { Sidebar } from './components/Sidebar';
 import { TopBar } from './components/TopBar';
 import { ViewportTools } from './components/ViewportTools';
+import { useIsMobile } from './hooks/useIsMobile';
 import { buildBeamGeometry } from './modeling/beam';
 import { computeBom, downloadBomCsv } from './modeling/bom';
 import { buildColumnGeometry } from './modeling/column';
@@ -24,6 +26,7 @@ function App() {
   const display = useBeamStore((state) => state.display);
   const loads = useBeamStore((state) => state.loads);
   const mechanicsDisplay = useBeamStore((state) => state.mechanicsDisplay);
+  const annotationDisplay = useBeamStore((state) => state.annotationDisplay);
   const errors = useBeamStore((state) => state.errors);
   const setComponentType = useBeamStore((state) => state.setComponentType);
   const updateParameter = useBeamStore((state) => state.updateParameter);
@@ -34,10 +37,13 @@ function App() {
   const updateDisplay = useBeamStore((state) => state.updateDisplay);
   const updateLoad = useBeamStore((state) => state.updateLoad);
   const updateMechanicsDisplay = useBeamStore((state) => state.updateMechanicsDisplay);
+  const updateAnnotationDisplay = useBeamStore((state) => state.updateAnnotationDisplay);
   const reset = useBeamStore((state) => state.reset);
 
   const [viewMode, setViewMode] = useState<ViewMode>('iso');
   const [viewKey, setViewKey] = useState(0);
+  const isMobile = useIsMobile();
+  const [mobileTab, setMobileTab] = useState<MobileTab>('view');
 
   const geometry = useMemo(() => {
     if (componentType === 'column') return buildColumnGeometry(column);
@@ -110,6 +116,93 @@ function App() {
     componentType === 'slab' ? '板构件 LB' :
     '梁构件 KL';
 
+  if (isMobile) {
+    const viewNode = (
+      <div className="viewport mobile-viewport">
+        <BeamScene
+          key={`m-${componentType}-${viewMode}-${viewKey}`}
+          geometry={geometry}
+          display={display}
+          componentType={componentType}
+          frame={frame}
+          viewMode={viewMode}
+          forces={forces ?? undefined}
+          mechanicsDisplay={mechanicsDisplay}
+          annotationDisplay={annotationDisplay}
+        />
+        <ViewportTools
+          variant="mobile"
+          viewMode={viewMode}
+          setViewMode={(mode) => { setViewMode(mode); setViewKey((k) => k + 1); }}
+          onResetView={() => { setViewMode('iso'); setViewKey((k) => k + 1); }}
+        />
+        {componentType === 'frame' && (
+          <button
+            type="button"
+            className="mobile-fab mobile-fab-mech"
+            onClick={() => updateMechanicsDisplay('show', !mechanicsDisplay.show)}
+            aria-label="切换内力图"
+          >M</button>
+        )}
+        {componentType === 'frame' && (
+          <button
+            type="button"
+            className="mobile-fab mobile-fab-anno"
+            onClick={() => updateAnnotationDisplay('master', !annotationDisplay.master)}
+            aria-label="切换标注"
+          >Aa</button>
+        )}
+        {componentType === 'frame' && forces && mechanicsDisplay.show && (
+          <MechanicsOverlay forces={forces} display={mechanicsDisplay} />
+        )}
+      </div>
+    );
+
+    const paramsNode = (
+      <div className="mobile-params">
+        <Sidebar componentType={componentType} setComponentType={setComponentType} applyPreset={applyPreset} />
+        <ControlsPanel
+          componentType={componentType}
+          parameters={parameters}
+          column={column}
+          frame={frame}
+          slab={slab}
+          display={display}
+          loads={loads}
+          mechanicsDisplay={mechanicsDisplay}
+          annotationDisplay={annotationDisplay}
+          advice={advice ?? undefined}
+          errors={errors}
+          stats={geometry.stats}
+          setComponentType={setComponentType}
+          updateParameter={updateParameter}
+          applyParameters={applyParameters}
+          updateColumnParameter={updateColumnParameter}
+          updateFrameParameter={updateFrameParameter}
+          updateSlabParameter={updateSlabParameter}
+          updateDisplay={updateDisplay}
+          updateLoad={updateLoad}
+          updateMechanicsDisplay={updateMechanicsDisplay}
+          updateAnnotationDisplay={updateAnnotationDisplay}
+          reset={reset}
+        />
+      </div>
+    );
+
+    const bomNode = <BomTable rows={bomRows} hints={hints} />;
+
+    return (
+      <MobileShell
+        activeTab={mobileTab}
+        setActiveTab={setMobileTab}
+        view={viewNode}
+        params={paramsNode}
+        bom={bomNode}
+        onExport={() => downloadBomCsv(bomRows)}
+      />
+    );
+  }
+
   return (
     <div className="app-root">
       <TopBar onExport={() => downloadBomCsv(bomRows)} />
@@ -156,6 +249,7 @@ function App() {
                 viewMode={viewMode}
                 forces={forces ?? undefined}
                 mechanicsDisplay={mechanicsDisplay}
+                annotationDisplay={annotationDisplay}
               />
               {componentType === 'frame' && forces && mechanicsDisplay.show && (
                 <MechanicsOverlay forces={forces} display={mechanicsDisplay} />
@@ -173,6 +267,7 @@ function App() {
           display={display}
           loads={loads}
           mechanicsDisplay={mechanicsDisplay}
+          annotationDisplay={annotationDisplay}
           advice={advice ?? undefined}
           errors={errors}
           stats={geometry.stats}
@@ -185,6 +280,7 @@ function App() {
           updateDisplay={updateDisplay}
           updateLoad={updateLoad}
           updateMechanicsDisplay={updateMechanicsDisplay}
+          updateAnnotationDisplay={updateAnnotationDisplay}
           reset={reset}
         />
       </div>

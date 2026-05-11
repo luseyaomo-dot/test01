@@ -1,7 +1,7 @@
 import { RotateCcw, Wand2 } from 'lucide-react';
 import { useState } from 'react';
 import { parseBeamAnnotation } from '../modeling/annotation';
-import type { BeamParameters, ColumnParameters, ComponentType, DesignAdvice, DisplayOptions, FrameParameters, LoadInputs, MechanicsDisplayOptions, SlabParameters } from '../types';
+import type { AnnotationDisplay, BeamParameters, ColumnParameters, ComponentType, DesignAdvice, DisplayOptions, FrameParameters, LoadInputs, MechanicsDisplayOptions, SlabParameters } from '../types';
 
 type ControlsPanelProps = {
   componentType: ComponentType;
@@ -14,6 +14,7 @@ type ControlsPanelProps = {
   display: DisplayOptions;
   loads?: LoadInputs;
   mechanicsDisplay?: MechanicsDisplayOptions;
+  annotationDisplay?: AnnotationDisplay;
   advice?: DesignAdvice;
   errors: Partial<Record<keyof BeamParameters, string>>;
   stats: {
@@ -32,6 +33,7 @@ type ControlsPanelProps = {
   updateDisplay: <K extends keyof DisplayOptions>(key: K, value: DisplayOptions[K]) => void;
   updateLoad?: <K extends keyof LoadInputs>(key: K, value: LoadInputs[K]) => void;
   updateMechanicsDisplay?: <K extends keyof MechanicsDisplayOptions>(key: K, value: MechanicsDisplayOptions[K]) => void;
+  updateAnnotationDisplay?: <K extends keyof AnnotationDisplay>(key: K, value: AnnotationDisplay[K]) => void;
   reset: () => void;
 };
 
@@ -83,6 +85,7 @@ export function ControlsPanel({
   display,
   loads,
   mechanicsDisplay,
+  annotationDisplay,
   advice,
   errors,
   stats,
@@ -95,6 +98,7 @@ export function ControlsPanel({
   updateDisplay,
   updateLoad,
   updateMechanicsDisplay,
+  updateAnnotationDisplay,
   reset,
 }: ControlsPanelProps) {
   const [annotation, setAnnotation] = useState('KL1(2A) 300x700, A10@100/200(4), 4C25; 4C20');
@@ -246,6 +250,23 @@ export function ControlsPanel({
             <ToggleField label="高亮受拉筋" checked={mechanicsDisplay.highlightTension} onChange={(value) => updateMechanicsDisplay('highlightTension', value)} />
           </div>
           <p className="note">单跨单层框架解析法 (位移法 + 反弯点近似)，仅做教学/示意，不替代正规结构计算。</p>
+        </section>
+      )}
+
+      {annotationDisplay && updateAnnotationDisplay && (
+        <section>
+          <h3>标注显示</h3>
+          <div className="toggle-grid">
+            <ToggleField label="全部标注" checked={annotationDisplay.master} onChange={(v) => updateAnnotationDisplay('master', v)} />
+            <ToggleField label="净跨 Ln" checked={annotationDisplay.span} onChange={(v) => updateAnnotationDisplay('span', v)} />
+            <ToggleField label="截面 b×h / KZ" checked={annotationDisplay.section} onChange={(v) => updateAnnotationDisplay('section', v)} />
+            <ToggleField label="支座宽" checked={annotationDisplay.support} onChange={(v) => updateAnnotationDisplay('support', v)} />
+            <ToggleField label="锚固 0.4laE+15d" checked={annotationDisplay.anchor} onChange={(v) => updateAnnotationDisplay('anchor', v)} />
+            <ToggleField label="节点核心区" checked={annotationDisplay.joint} onChange={(v) => updateAnnotationDisplay('joint', v)} />
+            <ToggleField label="柱加密区" checked={annotationDisplay.columnDense} onChange={(v) => updateAnnotationDisplay('columnDense', v)} />
+            <ToggleField label="梁加密区" checked={annotationDisplay.beamDense} onChange={(v) => updateAnnotationDisplay('beamDense', v)} />
+          </div>
+          <p className="note">默认仅显示 Ln 与截面以避免遮挡，可按需勾选。</p>
         </section>
       )}
 

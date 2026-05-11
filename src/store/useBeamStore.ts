@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { z } from 'zod';
-import type { BeamParameters, ColumnParameters, ComponentType, DisplayOptions, FrameParameters, LoadInputs, MechanicsDisplayOptions, SlabParameters } from '../types';
+import type { AnnotationDisplay, BeamParameters, ColumnParameters, ComponentType, DisplayOptions, FrameParameters, LoadInputs, MechanicsDisplayOptions, SlabParameters } from '../types';
 
 const beamSchema = z.object({
   length: z.number().min(1000).max(30000),
@@ -132,6 +132,17 @@ export const defaultMechanicsDisplay: MechanicsDisplayOptions = {
   highlightTension: true,
 };
 
+export const defaultAnnotationDisplay: AnnotationDisplay = {
+  master: true,
+  span: true,
+  section: true,
+  support: false,
+  anchor: false,
+  joint: false,
+  columnDense: false,
+  beamDense: false,
+};
+
 type BeamStore = {
   componentType: ComponentType;
   parameters: BeamParameters;
@@ -141,6 +152,7 @@ type BeamStore = {
   display: DisplayOptions;
   loads: LoadInputs;
   mechanicsDisplay: MechanicsDisplayOptions;
+  annotationDisplay: AnnotationDisplay;
   errors: Partial<Record<keyof BeamParameters, string>>;
   setComponentType: (type: ComponentType) => void;
   updateParameter: <K extends keyof BeamParameters>(key: K, value: BeamParameters[K]) => void;
@@ -151,6 +163,7 @@ type BeamStore = {
   updateDisplay: <K extends keyof DisplayOptions>(key: K, value: DisplayOptions[K]) => void;
   updateLoad: <K extends keyof LoadInputs>(key: K, value: LoadInputs[K]) => void;
   updateMechanicsDisplay: <K extends keyof MechanicsDisplayOptions>(key: K, value: MechanicsDisplayOptions[K]) => void;
+  updateAnnotationDisplay: <K extends keyof AnnotationDisplay>(key: K, value: AnnotationDisplay[K]) => void;
   reset: () => void;
 };
 
@@ -176,6 +189,7 @@ export const useBeamStore = create<BeamStore>((set) => ({
   display: defaultDisplayOptions,
   loads: defaultLoadInputs,
   mechanicsDisplay: defaultMechanicsDisplay,
+  annotationDisplay: defaultAnnotationDisplay,
   errors: {},
   setComponentType: (type) => set({ componentType: type }),
   updateParameter: (key, value) =>
@@ -200,6 +214,8 @@ export const useBeamStore = create<BeamStore>((set) => ({
     set((state) => ({ loads: { ...state.loads, [key]: value } })),
   updateMechanicsDisplay: (key, value) =>
     set((state) => ({ mechanicsDisplay: { ...state.mechanicsDisplay, [key]: value } })),
+  updateAnnotationDisplay: (key, value) =>
+    set((state) => ({ annotationDisplay: { ...state.annotationDisplay, [key]: value } })),
   reset: () =>
     set({
       componentType: 'frame',
@@ -210,6 +226,7 @@ export const useBeamStore = create<BeamStore>((set) => ({
       display: defaultDisplayOptions,
       loads: defaultLoadInputs,
       mechanicsDisplay: defaultMechanicsDisplay,
+      annotationDisplay: defaultAnnotationDisplay,
       errors: {},
     }),
 }));

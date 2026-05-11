@@ -112,6 +112,17 @@ export type LoadInputs = {
   H: number;   // kN, 梁顶水平节点荷载, 作用在左节点, 向右为正
 };
 
+export type AnnotationDisplay = {
+  master: boolean;
+  span: boolean;
+  section: boolean;
+  support: boolean;
+  anchor: boolean;
+  joint: boolean;
+  columnDense: boolean;
+  beamDense: boolean;
+};
+
 export type MechanicsDisplayOptions = {
   show: boolean;            // 是否显示 2D 内力图层
   showMoment: boolean;
