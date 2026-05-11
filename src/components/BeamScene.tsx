@@ -50,8 +50,9 @@ export function BeamScene({ geometry, display, componentType, frame, showAnnotat
     >
       <PerspectiveCamera makeDefault position={camPosition} fov={42} />
       <color attach="background" args={["#0f172a"]} />
-      <ambientLight intensity={0.7} />
-      <directionalLight position={[camDist, camDist * 1.2, camDist]} intensity={1.8} castShadow={!isMobile} shadow-mapSize-width={2048} shadow-mapSize-height={2048} />
+      <ambientLight intensity={isMobile ? 1.0 : 0.7} />
+      <directionalLight position={[camDist, camDist * 1.2, camDist]} intensity={isMobile ? 1.4 : 1.8} castShadow={!isMobile} shadow-mapSize-width={2048} shadow-mapSize-height={2048} />
+      {isMobile && <directionalLight position={[-camDist, camDist * 0.6, -camDist]} intensity={0.6} />}
       <BeamModel geometry={geometry} display={display} forces={forces} mechanicsDisplay={mechanicsDisplay} />
       {showAnnotations && componentType === 'frame' && frame && <SceneAnnotations frame={frame} display={annotationDisplay} />}
       <Grid position={[0, -geometry.bounds.height / 2 - 0.12, 0]} args={[gridSize, gridSize]} cellSize={0.25} cellThickness={0.5} cellColor="#334155" sectionSize={1} sectionThickness={1.2} sectionColor="#64748b" fadeDistance={gridSize} fadeStrength={1.2} />
@@ -66,7 +67,7 @@ export function BeamScene({ geometry, display, componentType, frame, showAnnotat
         panSpeed={isMobile ? 0.8 : 1.0}
         touches={{ ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN }}
       />
-      <Environment preset="city" />
+      {!isMobile && <Environment preset="city" />}
       {!isMobile && <Stats />}
     </Canvas>
   );

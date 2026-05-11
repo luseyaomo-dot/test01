@@ -1197,13 +1197,16 @@ section h3 {
 /* Bottom segmented view-mode bar */
 .viewport-tools-mobile {
   position: absolute;
+  top: auto;
   left: 50%;
-  bottom: calc(env(safe-area-inset-bottom) + 12px);
+  right: auto;
+  bottom: 12px;
   transform: translateX(-50%);
   flex-direction: row !important;
   gap: 2px !important;
   padding: 4px !important;
   border-radius: 999px !important;
+  width: max-content;
   max-width: calc(100vw - 24px);
   overflow-x: auto;
   z-index: 8;
@@ -1239,21 +1242,28 @@ section h3 {
   box-shadow: 0 8px 24px rgba(2, 6, 23, 0.45);
   backdrop-filter: blur(10px);
 }
-.mobile-fab-mech { top: 14px; }
-.mobile-fab-anno { top: 66px; }
+.mobile-fab-mech { bottom: calc(env(safe-area-inset-bottom) + 68px); }
+.mobile-fab-anno { bottom: calc(env(safe-area-inset-bottom) + 120px); }
 
-/* Mechanics overlay on mobile: smaller, anchored above tabbar */
+/* Mechanics overlay on mobile: docked at top, full width minus padding */
 .mobile-viewport .mechanics-overlay {
-  width: 240px;
-  right: 12px;
-  top: auto;
-  bottom: calc(env(safe-area-inset-bottom) + 72px);
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: 8px;
+  bottom: auto;
+  width: auto;
+  max-width: none;
   padding: 6px 8px 4px;
 }
 .mobile-viewport .mechanics-overlay svg {
   width: 100%;
   height: auto;
+  max-height: 140px;
 }
+.mobile-viewport .mechanics-overlay-header span { font-size: 11px; }
+.mobile-viewport .mechanics-overlay-header em { font-size: 10px; }
+.mobile-viewport .mechanics-overlay-legend { font-size: 10px; gap: 8px; }
 
 /* Mobile params page: vertical stack */
 .mobile-params {
